@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="30%" style="stop-color:yellow;stop-opacity:1" />
+    <stop offset="70%" style="stop-color:black;stop-opacity:1" />
+  </linearGradient>
+  <path fill="url(#grad)" d="M12 2.05l2.76 5.58 6.22.9-4.5 4.38 1.06 6.18-5.54-2.92-5.54 2.92 1.06-6.18-4.5-4.38 6.22-.9z"/>
+</svg>
