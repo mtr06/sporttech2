@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import Header from "@/components/Header";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import Swiper from "react-native-swiper";
 import {
   FontAwesome,
@@ -23,15 +23,195 @@ const images = [
   { id: "3", src: require("../../assets/images/iklan3.png") },
 ];
 
+const lapangan = [
+  {
+    type: "futsal",
+    id: "1",
+    src: require("../../assets/images/futsal1.png"),
+    nama: "Futsal Garuda",
+    alamat: "Jalan Garuda Nusantara, Dago, Bandung",
+    isPromo: false,
+    hargaAsli: 100000,
+    hargaPromo: 0,
+    rating: 5,
+  },
+  {
+    type: "futsal",
+    id: "2",
+    src: require("../../assets/images/futsal2.png"),
+    nama: "Futsal Senayan",
+    alamat: "Jalan Patal Senayan, Kebayoran, Jakarta Selatan",
+    isPromo: true,
+    hargaAsli: 150000,
+    hargaPromo: 135000,
+    rating: 4,
+  },
+  {
+    type: "futsal",
+    id: "3",
+    src: require("../../assets/images/futsal3.png"),
+    nama: "Lapangan Futsal Meruya",
+    alamat: "Jalan Meruya Selatan, Kembangan, Jakarta Barat",
+    isPromo: false,
+    hargaAsli: 50000,
+    hargaPromo: 0,
+    rating: 4,
+  },
+  {
+    type: "futsal",
+    id: "4",
+    src: require("../../assets/images/futsal4.png"),
+    nama: "Go Futsal",
+    alamat: "Jalan Palmerah Utara no 10, Grogol Utara,...",
+    isPromo: false,
+    hargaAsli: 85000,
+    hargaPromo: 0,
+    rating: 4,
+  },
+  {
+    type: "badminton",
+    id: "1",
+    src: require("../../assets/images/badminton1.png"),
+    nama: "Tangkas",
+    alamat: "Jalan Tanjung Duren Utara, Grogol, Jakar...",
+    isPromo: false,
+    hargaAsli: 89000,
+    hargaPromo: 0,
+    rating: 5,
+  },
+  {
+    type: "badminton",
+    id: "2",
+    src: require("../../assets/images/badminton2.png"),
+    nama: "Box to Box",
+    alamat: "Jalan Pluit Raya no 23, Tanjung Priok,...",
+    isPromo: false,
+    hargaAsli: 90000,
+    hargaPromo: 0,
+    rating: 4.5,
+  },
+  {
+    type: "badminton",
+    id: "3",
+    src: require("../../assets/images/badminton3.png"),
+    nama: "Gor Cisitu",
+    alamat: "Jalan Cisitu Raya no 22, Cisitu Lama, ...",
+    isPromo: false,
+    hargaAsli: 80000,
+    hargaPromo: 0,
+    rating: 4,
+  },
+  {
+    type: "badminton",
+    id: "4",
+    src: require("../../assets/images/badminton4.png"),
+    nama: "Gor PDAM",
+    alamat: "Jalan Ganesha no 88, Dago, Bandung",
+    isPromo: false,
+    hargaAsli: 70000,
+    hargaPromo: 0,
+    rating: 4,
+  },
+  {
+    type: "basket",
+    id: "1",
+    src: require("../../assets/images/basket1.png"),
+    nama: "Lapangan Basket Garuda",
+    alamat: "Jalan Tanah Abang 45, Kota, Jakarta P...",
+    isPromo: false,
+    hargaAsli: 150000,
+    hargaPromo: 0,
+    rating: 5,
+  },
+  {
+    type: "basket",
+    id: "2",
+    src: require("../../assets/images/basket2.png"),
+    nama: "Sport Center Gading",
+    alamat: "Jalan Gading Kirana no 10, Kelapa Ga...",
+    isPromo: false,
+    hargaAsli: 100000,
+    hargaPromo: 0,
+    rating: 4,
+  },
+  {
+    type: "basket",
+    id: "3",
+    src: require("../../assets/images/basket3.png"),
+    nama: "Art Basket",
+    alamat: "Jalan Saparua, Dago, Bandung",
+    isPromo: false,
+    hargaAsli: 80000,
+    hargaPromo: 0,
+    rating: 4,
+  },
+  {
+    type: "basket",
+    id: "4",
+    src: require("../../assets/images/basket4.png"),
+    nama: "Indoor Basket Bandung",
+    alamat: "Jalan Pasir Kaliki 88, Cimahi Utara,...",
+    isPromo: false,
+    hargaAsli: 100000,
+    hargaPromo: 0,
+    rating: 4,
+  },
+  {
+    type: "tennis",
+    id: "1",
+    src: require("../../assets/images/tennis1.png"),
+    nama: "Lapangan Tennis Senayan",
+    alamat: "Jalan Sumatra Selatan no 46, Grogol ...",
+    isPromo: false,
+    hargaAsli: 100000,
+    hargaPromo: 0,
+    rating: 5,
+  },
+  {
+    type: "tennis",
+    id: "2",
+    src: require("../../assets/images/tennis2.png"),
+    nama: "Tennis Puri",
+    alamat: "Puri Indah Mall lt. LG, Kembangan, Ja...",
+    isPromo: false,
+    hargaAsli: 100000,
+    hargaPromo: 0,
+    rating: 4.5,
+  },
+  {
+    type: "tennis",
+    id: "3",
+    src: require("../../assets/images/tennis3.png"),
+    nama: "Sport Center Pondok Indah",
+    alamat: "Jalan Pondok Indah Raya 23, Jakarta Se...",
+    isPromo: false,
+    hargaAsli: 150000,
+    hargaPromo: 0,
+    rating: 4,
+  },
+  {
+    type: "tennis",
+    id: "4",
+    src: require("../../assets/images/tennis4.png"),
+    nama: "SCBD Tennis Club",
+    alamat: "Jalan Kuningan Raya 77, Semanggi, Jak...",
+    isPromo: false,
+    hargaAsli: 250000,
+    hargaPromo: 0,
+    rating: 4,
+  },
+];
+
 export default function HomeScreen() {
   const [isPressedFutsal, setIsPressedFutsal] = useState<boolean>(true);
   const [isPressedBadminton, setIsPressedBadminton] = useState<boolean>(false);
   const [isPressedBasket, setIsPressedBasket] = useState<boolean>(false);
   const [isPressedTennis, setIsPressedTennis] = useState<boolean>(false);
   const router = useRouter();
+  const params = useLocalSearchParams();
   return (
     <View className="flex flex-1 mx-2">
-      <Header router={router} />
+      <Header user={params} router={router} />
       {/* Iklan */}
       <View className="flex mt-2 h-[30%]">
         <Swiper
@@ -143,7 +323,7 @@ export default function HomeScreen() {
           </Text>
         </TouchableOpacity>
       </View>
-      <ScrollView className="h-fit">
+      <ScrollView className="mt-3 h-fit">
         <View className="mt-2 flex flex-row h-[120px] bg-[#E6EDF5] shadow-lg shadow-slate-800 rounded-xl">
           {/* Image */}
           <Image

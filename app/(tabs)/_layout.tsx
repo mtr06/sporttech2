@@ -27,6 +27,18 @@ export default function TabLayout() {
           title: "Explore",
         }}
       />
+      <Stack.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+        }}
+      />
+      <Stack.Screen
+        name="signin"
+        options={{
+          title: "Sign In",
+        }}
+      />
     </Stack>
   );
 }

@@ -1,13 +1,15 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
-import React from "react";
-import { Stack } from "expo-router";
+import React, { useState } from "react";
+import { Stack, useRouter } from "expo-router";
 import {
   MaterialCommunityIcons,
   FontAwesome6,
   MaterialIcons,
 } from "@expo/vector-icons";
+import { auth } from "../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
-const Header = (router: any) => {
+const Header = ({ user, router }: any) => {
   return (
     <Stack.Screen
       options={{
@@ -25,7 +27,17 @@ const Header = (router: any) => {
               </TouchableOpacity>
             </View>
             <View>
-              <TouchableOpacity onPress={() => router}>
+              <TouchableOpacity
+                onPress={() => {
+                  onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                      router.push({ pathname: "/profile", params: user });
+                    } else {
+                      router.push({ pathname: "/signin" });
+                    }
+                  });
+                }}
+              >
                 <FontAwesome6 name="user-circle" size={28} color="white" />
               </TouchableOpacity>
             </View>
