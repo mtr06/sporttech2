@@ -16,6 +16,7 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import React, { useState } from "react";
+import { getAuth, signOut } from "firebase/auth";
 
 export default function HomeScreen() {
   const [isPressedFutsal, setIsPressedFutsal] = useState<boolean>(true);
@@ -23,5 +24,11 @@ export default function HomeScreen() {
   const [isPressedBasket, setIsPressedBasket] = useState<boolean>(false);
   const [isPressedTennis, setIsPressedTennis] = useState<boolean>(false);
   const router = useRouter();
-  return <View></View>;
+  return (
+    <View>
+      <TouchableOpacity onPress={() => signOut(getAuth())}>
+        <Text>Sign Out</Text>
+      </TouchableOpacity>
+    </View>
+  );
 }

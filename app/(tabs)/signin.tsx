@@ -1,33 +1,40 @@
 import {
+  ScrollView,
   Image,
-  StyleSheet,
   View,
   Text,
   TouchableOpacity,
   TextInput,
-  ScrollView,
 } from "react-native";
 import Header from "@/components/Header";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import Swiper from "react-native-swiper";
-import {
-  FontAwesome,
-  MaterialCommunityIcons,
-  MaterialIcons,
-} from "@expo/vector-icons";
 import React, { useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
-export default function HomeScreen() {
+export default function SignIn() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [email, setEmail] = useState<string>("");
-  const [passord, setPassword] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const auth = getAuth();
 
-  const handleLogin = () => {};
+  const handleLogin = () => {
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        if (user) {
+          router.push({ pathname: "/", params: params });
+        }
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        alert(`${errorCode}: ${errorMessage}`);
+      });
+  };
 
   return (
-    <View>
+    <ScrollView>
       <Header user={params} router={router} />
       {/* Area Content */}
       <View className="mt-4 flex items-center">
@@ -47,17 +54,16 @@ export default function HomeScreen() {
             <TextInput
               placeholder="Enter email"
               keyboardType="email-address"
-              onChangeText={(text) => setEmail(text)}
+              onChangeText={(email) => setEmail(email)}
               className="mt-2 text-base px-4 py-2 border-2 border-gray-400 rounded-xl"
             />
           </View>
-
           <View className="mx-6">
             <Text className="text-base mt-4">Password</Text>
             <TextInput
               placeholder="********"
               secureTextEntry
-              onChangeText={(text) => setPassword(text)}
+              onChangeText={(password) => setPassword(password)}
               className="mt-2 text-base px-4 py-2 border-2 border-gray-400 rounded-xl"
             />
           </View>
@@ -71,12 +77,16 @@ export default function HomeScreen() {
           </TouchableOpacity>
           <View className="mt-1 flex flex-row justify-center">
             <Text>Don't have an account?</Text>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                router.push({ pathname: "/signup" });
+              }}
+            >
               <Text className="text-[#232297] font-semibold"> Sign Up</Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }

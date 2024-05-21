@@ -323,7 +323,7 @@ export default function HomeScreen() {
           </Text>
         </TouchableOpacity>
       </View>
-      <ScrollView className="mt-3 h-fit">
+      <ScrollView className="mt-2 h-fit">
         <View className="mt-2 flex flex-row h-[120px] bg-[#E6EDF5] shadow-lg shadow-slate-800 rounded-xl">
           {/* Image */}
           <Image

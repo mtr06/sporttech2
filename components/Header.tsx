@@ -6,10 +6,10 @@ import {
   FontAwesome6,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { auth } from "../firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const Header = ({ user, router }: any) => {
+  const auth = getAuth();
   return (
     <Stack.Screen
       options={{
