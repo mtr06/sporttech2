@@ -45,7 +45,11 @@ const Header = ({ user, router }: any) => {
         ),
         headerLeft: () => (
           <View className="flex flex-row items-center gap-x-4">
-            <TouchableOpacity onPress={() => router}>
+            <TouchableOpacity
+              onPress={() => {
+                router.push({ pathname: "/" });
+              }}
+            >
               <MaterialCommunityIcons
                 name="home-outline"
                 size={32}

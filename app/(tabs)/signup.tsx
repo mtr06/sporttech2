@@ -28,7 +28,7 @@ export default function SignUp() {
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [referralCode, setReferralCode] = useState<string>("");
   const handleSignup = async () => {
-    setFullName(fullName + " " + lastName);
+    setFullName(`${firstName} ${lastName}`);
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let randomReferral = "";
     for (let i = 0; i < 6; i++) {
@@ -39,7 +39,7 @@ export default function SignUp() {
       await createUserWithEmailAndPassword(getAuth(), email, password);
       await updateProfile(getAuth().currentUser!!, {
         displayName: fullName,
-        photoURL: `https://firebasestorage.googleapis.com/v0/b/ppam-e8f78.appspot.com/o/foto-profile%2${fullName}.jpg?alt=media&token=1b971906-abc4-4f47-bf0f-079d73347581`,
+        photoURL: "",
       });
       await setDoc(doc(db, "customer", getAuth().currentUser!!.uid), {
         id: getAuth().currentUser!!.uid,

@@ -22,9 +22,9 @@ export default function TabLayout() {
         }}
       />
       <Stack.Screen
-        name="explore"
+        name="reservation"
         options={{
-          title: "Explore",
+          title: "Reservation Lapangan",
         }}
       />
       <Stack.Screen
