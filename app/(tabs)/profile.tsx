@@ -4,13 +4,14 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
+  RefreshControl,
   ScrollView,
   ActivityIndicator,
 } from "react-native";
 import Header from "@/components/Header";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { FontAwesome6 } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { getAuth, signOut } from "firebase/auth";
 import { db } from "@/firebaseConfig";
 import {
@@ -32,12 +33,21 @@ import {
 
 export default function Profile() {
   const [profile, setProfile] = useState<any>({});
+  const [ownerData, setOwnerData] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [image, setImage] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const router = useRouter();
-  const user = useLocalSearchParams();
+  const user = getAuth().currentUser;
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
 
   const uploadProfile = async (uri: any) => {
     if (uri) {
@@ -97,7 +107,7 @@ export default function Profile() {
     }
   };
 
-  useEffect(() => {
+  const fetchProfile = () => {
     const q = query(
       collection(db, "customer"),
       where("id", "==", getAuth().currentUser!!.uid)
@@ -109,7 +119,35 @@ export default function Profile() {
       setLoading(false);
     });
     return unsub;
-  });
+  };
+
+  const fetchOwnerData = () => {
+    const q2 = query(
+      collection(db, "venueOwner"),
+      where("id", "==", getAuth().currentUser!!.uid)
+    );
+    // console.log(getAuth().currentUser!!.uid);
+    const unsub2 = onSnapshot(q2, (querySnapshot2) => {
+      querySnapshot2.forEach((doc) => {
+        setOwnerData(doc.data());
+        console.log(doc.data());
+      });
+      setLoading(false);
+    });
+    return unsub2;
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+      if (profile.role == "Venue Owner") {
+        fetchOwnerData();
+        console.log(ownerData.akunPembayaran);
+      }
+    } else {
+      router.push("/signin");
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -120,10 +158,14 @@ export default function Profile() {
   }
 
   return (
-    <ScrollView>
+    <ScrollView
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <Header router={router} params={user} />
       {/* Area Content */}
-      <View className="mt-8 flex items-center">
+      <View className="mt-3 flex items-center">
         <View className="flex flex-row justify-center bg-[#B1B1B1] w-[150px] h-[150px] rounded-[100px]">
           {uploading ? (
             <View className="justify-center items-center w-full h-full">
@@ -157,8 +199,8 @@ export default function Profile() {
           )}
         </View>
         <View className="w-full">
-          <View className="mx-8 mt-2">
-            <Text className="text-xl text-textButton font-bold mt-2">
+          <View className="mx-8 mt-1">
+            <Text className="text-lg text-textButton font-bold mt-2">
               Nama Lengkap
             </Text>
             <Text className="mt-2 text-md text-textButton pb-1 px-2 mx-3 border-b-[1px]">
@@ -196,7 +238,7 @@ export default function Profile() {
                   Akun Pembayaran
                 </Text>
                 <Text className="mt-2 text-md text-textButton pb-1 px-2 mx-3 border-b-[1px]">
-                  {profile.referralCode}
+                  {ownerData.akunPembayaran}
                 </Text>
               </View>
               <View className="mx-8 mt-2">
@@ -204,7 +246,7 @@ export default function Profile() {
                   Nomor Akun Pembayaran
                 </Text>
                 <Text className="mt-2 text-md text-textButton pb-1 px-2 mx-3 border-b-[1px]">
-                  {profile.referralCode}
+                  {ownerData.nomorAkun}
                 </Text>
               </View>
             </View>
@@ -222,18 +264,29 @@ export default function Profile() {
                 Sign Out
               </Text>
             </TouchableOpacity>
-            <View className="mt-1 flex flex-row justify-center">
-              <Text>You have a venue? </Text>
+            {profile.role === "Venue Owner" ? (
               <TouchableOpacity
-                onPress={() => {
-                  router.push({ pathname: "/signup" });
-                }}
+                onPress={() => router.replace("/inputlapangan")}
+                className="mt-2 mx-6 bg-[#5F88C1] w-[50%] py-2 flex items-center rounded-3xl self-center border-[2px] border-[#5F88C1]"
               >
-                <Text className="text-[#232297] font-semibold">
-                  Register as owner
+                <Text className="text-xl text-textButton font-bold text-white">
+                  Boost Your Venue
                 </Text>
               </TouchableOpacity>
-            </View>
+            ) : (
+              <View className="mt-1 flex flex-row justify-center">
+                <Text>You have a venue? </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    router.replace("/inputlapangan");
+                  }}
+                >
+                  <Text className="text-[#232297] font-semibold">
+                    Register as owner
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
       </View>

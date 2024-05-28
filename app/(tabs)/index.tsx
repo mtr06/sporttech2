@@ -16,6 +16,7 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import React, { useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
 
 const images = [
   { id: "1", src: require("../../assets/images/iklan1.png") },
