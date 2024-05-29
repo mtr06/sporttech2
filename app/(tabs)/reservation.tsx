@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Button, StyleSheet, ScrollView } from 'react-native';
 import { db } from '@/firebaseConfig';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { useLocalSearchParams } from 'expo-router';
+import { doc, getDoc } from 'firebase/firestore';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+
 const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 const timeSlots = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
 
 const App: React.FC = () => {
   const [availableSlots, setAvailableSlots] = useState<{ [day: string]: { [hour: string]: boolean } }>({});
-  const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
+  const [selectedTimes, setSelectedTimes] = useState<any>([]);
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [harga, setHarga] = useState<number>(0); 
   const [nama, setNama] = useState<string>('');
   const params = useLocalSearchParams();
+  const router = useRouter();
 
-  const id: string = params.id;
+  const id: string = params.id as string;
   useEffect(() => {
     const fetchTimeSlots = async () => {
       try {
@@ -40,7 +42,7 @@ const App: React.FC = () => {
     };
 
     fetchTimeSlots();
-  }, []);
+  }, [id]);
 
   const handleSelectDay = (day: string) => {
     setSelectedDay(day);
@@ -50,15 +52,13 @@ const App: React.FC = () => {
     if (!selectedDay) return;
   
     const slot = `${selectedDay}_${time}`;
-    setSelectedTimes(prev => {
+    setSelectedTimes((prev: any) => {
       if (prev.includes(slot)) {
-        // If the slot is already selected, unselect it and update price
-        const newSelectedTimes = prev.filter(t => t !== slot);
+        const newSelectedTimes = prev.filter((t: any) => t !== slot);
         setSelectedTimes(newSelectedTimes);
         calculatePrice(newSelectedTimes);
         return newSelectedTimes;
       } else {
-        // If the slot is not selected, select it and update price
         const newSelectedTimes = [...prev, slot];
         setSelectedTimes(newSelectedTimes);
         calculatePrice(newSelectedTimes);
@@ -72,36 +72,15 @@ const App: React.FC = () => {
     setTotalPrice(price);
   };
   
-
-  const handleBookSlots = async () => {
+  const handleBookSlots = () => {
     if (!selectedTimes.length) return;
-  
-    try {
-      const docRef = doc(db, 'lapangan', '1');
-      const updates: { [key: string]: boolean } = {};
-      selectedTimes.forEach(slot => {
-        const [day, time] = slot.split('_');
-        const hour = time.split(':')[0].replace(/^0/, ''); // Remove leading zero
-        const updateKey = `timeAvailable.${day}.${hour}`;
-        updates[updateKey] = false; // Set availability to false
-      });
-  
-      // Log updates object
-  
-      await updateDoc(docRef, updates);
-      setSelectedTimes([]);
-      setTotalPrice(0);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setAvailableSlots(docSnap.data().timeAvailable);
-      }
-    } catch (error) {
-      console.error('Error updating document:', error);
-    }
-  };  
-  
-  
-  
+
+    // Navigate to Payment screen with necessary data
+    router.push({
+      pathname: 'payment',
+      params: { id, nama, harga, totalPrice, selectedTimes }
+    });
+  };
 
   const renderTimeSlotsForDay = (day: string) => (
     <View key={day} style={styles.dayColumn}>
@@ -110,9 +89,9 @@ const App: React.FC = () => {
       </TouchableOpacity>
       {selectedDay === day && timeSlots.map(time => {
         const slot = `${day}_${time}`;
-      const hour = parseInt(time.split(':')[0]); // Convert hour to number
-      const isAvailable = availableSlots[day] && availableSlots[day][hour] !== undefined ? availableSlots[day][hour] : false;
-      const isBookable = isAvailable !== false;
+        const hour = parseInt(time.split(':')[0]);
+        const isAvailable = availableSlots[day] && availableSlots[day][hour] !== undefined ? availableSlots[day][hour] : false;
+        const isBookable = isAvailable !== false;
       
         return (
           <TouchableOpacity key={slot} onPress={() => handleSelectTime(time)} disabled={!isBookable}>
@@ -179,7 +158,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   blankSpace: {
-    height: 50, // Adjust the height as needed
+    height: 50,
   },
 });
 export default App;
