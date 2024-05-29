@@ -12,6 +12,7 @@ export default function TabLayout() {
   return (
     <Stack
       screenOptions={{
+        freezeOnBlur: true,
         headerStyle: { backgroundColor: "#6895D2" },
       }}
     >

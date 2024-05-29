@@ -20,7 +20,6 @@ import { doc, setDoc } from "firebase/firestore";
 export default function SignUp() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [fullName, setFullName] = useState<string>("");
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -28,7 +27,9 @@ export default function SignUp() {
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [referralCode, setReferralCode] = useState<string>("");
   const handleSignup = async () => {
-    setFullName(`${firstName} ${lastName}`);
+    const fullName = `${firstName} ${lastName}`;
+    console.log(fullName);
+
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let randomReferral = "";
     for (let i = 0; i < 6; i++) {
@@ -43,7 +44,7 @@ export default function SignUp() {
       });
       await setDoc(doc(db, "customer", getAuth().currentUser!!.uid), {
         id: getAuth().currentUser!!.uid,
-        nama: getAuth().currentUser!!.displayName,
+        nama: fullName,
         email: getAuth().currentUser!!.email,
         fotoProfil: getAuth().currentUser!!.photoURL,
         phoneNumber: phoneNumber,
@@ -52,8 +53,7 @@ export default function SignUp() {
         role: "Customer",
       }).then(() => {
         alert("Registrasi Berhasil!");
-        const user = useLocalSearchParams();
-        // router.push({ pathname: "/index", params: user });
+        router.push({ pathname: "/profile" });
       });
     } catch (e) {
       alert(e);
