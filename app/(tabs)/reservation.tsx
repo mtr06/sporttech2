@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Button, StyleSheet, ScrollView } from 'react-native';
 import { db } from '@/firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-
+import { useLocalSearchParams } from 'expo-router';
 const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 const timeSlots = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
 
@@ -11,16 +11,26 @@ const App: React.FC = () => {
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [selectedDay, setSelectedDay] = useState<string>('');
+  const [harga, setHarga] = useState<number>(0); 
+  const [nama, setNama] = useState<string>('');
+  const params = useLocalSearchParams();
 
+  const id: string = params.id;
   useEffect(() => {
     const fetchTimeSlots = async () => {
       try {
-        const docRef = doc(db, 'lapangan', '1');
+        if (!id) return;
+        const docRef = doc(db, 'lapangan', id);
+        
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
           const data = docSnap.data().timeAvailable;
+          const harga = docSnap.data().harga;
+          const nama = docSnap.data().namaLapangan;
           setAvailableSlots(data);
+          setHarga(harga);
+          setNama(nama);
         } else {
           console.log('No such document!');
         }
@@ -38,21 +48,30 @@ const App: React.FC = () => {
 
   const handleSelectTime = (time: string) => {
     if (!selectedDay) return;
-
+  
     const slot = `${selectedDay}_${time}`;
     setSelectedTimes(prev => {
       if (prev.includes(slot)) {
-        return prev.filter(t => t !== slot);
+        // If the slot is already selected, unselect it and update price
+        const newSelectedTimes = prev.filter(t => t !== slot);
+        setSelectedTimes(newSelectedTimes);
+        calculatePrice(newSelectedTimes);
+        return newSelectedTimes;
       } else {
-        return [...prev, slot];
+        // If the slot is not selected, select it and update price
+        const newSelectedTimes = [...prev, slot];
+        setSelectedTimes(newSelectedTimes);
+        calculatePrice(newSelectedTimes);
+        return newSelectedTimes;
       }
     });
   };
-
-  const handleCalculatePrice = () => {
-    const price = selectedTimes.length * 1000;
+  
+  const calculatePrice = (selectedTimes: string[]) => {
+    const price = selectedTimes.length * harga;
     setTotalPrice(price);
   };
+  
 
   const handleBookSlots = async () => {
     if (!selectedTimes.length) return;
@@ -64,11 +83,10 @@ const App: React.FC = () => {
         const [day, time] = slot.split('_');
         const hour = time.split(':')[0].replace(/^0/, ''); // Remove leading zero
         const updateKey = `timeAvailable.${day}.${hour}`;
-        console.log("Update Key:", updateKey);
         updates[updateKey] = false; // Set availability to false
       });
   
-      console.log("Updates object:", updates); // Log updates object
+      // Log updates object
   
       await updateDoc(docRef, updates);
       setSelectedTimes([]);
@@ -95,11 +113,7 @@ const App: React.FC = () => {
       const hour = parseInt(time.split(':')[0]); // Convert hour to number
       const isAvailable = availableSlots[day] && availableSlots[day][hour] !== undefined ? availableSlots[day][hour] : false;
       const isBookable = isAvailable !== false;
-      // Logging
-      // console.log("Day:", day);
-      // console.log("Time:", time);
-      // console.log("Hour:", hour);
-      // console.log("Is Available:", isAvailable);
+      
         return (
           <TouchableOpacity key={slot} onPress={() => handleSelectTime(time)} disabled={!isBookable}>
             <Text style={[
@@ -116,13 +130,14 @@ const App: React.FC = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Lapangan Tennis Senayan</Text>
+      <Text style={styles.title}>{nama}</Text>
       <View style={styles.calendar}>
         {daysOfWeek.map(day => renderTimeSlotsForDay(day))}
       </View>
-      <Button title="Calculate Price" onPress={handleCalculatePrice} />
       <Text style={styles.totalPrice}>Total Price: Rp {totalPrice}</Text>
       <Button title="Book Slots" onPress={handleBookSlots} />
+
+      <View style={styles.blankSpace} />
     </ScrollView>
   );
 };
@@ -162,6 +177,9 @@ const styles = StyleSheet.create({
   },
   selectedDay: {
     fontWeight: 'bold',
+  },
+  blankSpace: {
+    height: 50, // Adjust the height as needed
   },
 });
 export default App;

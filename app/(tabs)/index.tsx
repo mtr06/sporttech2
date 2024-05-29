@@ -10,6 +10,7 @@ import {
 import Header from "@/components/Header";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Swiper from "react-native-swiper";
+
 import {
   FontAwesome,
   MaterialCommunityIcons,
@@ -358,7 +359,7 @@ export default function HomeScreen() {
             }}
               className="self-end bg-[#FDE767] w-[44%] h-[22%] rounded-xl items-center"
             >
-              <Text className="font-bold text-center">Book00000000 !</Text>
+              <Text className="font-bold text-center">Book Now !</Text>
             </TouchableOpacity>
           </View>
         </View>
