@@ -22,6 +22,12 @@ export default function TabLayout() {
         }}
       />
       <Stack.Screen
+        name="inputlapangan"
+        options={{
+          title: "Fill Your Venue",
+        }}
+      />
+      <Stack.Screen
         name="reservation"
         options={{
           title: "Reservation Lapangan",
