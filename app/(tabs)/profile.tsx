@@ -114,8 +114,13 @@ export default function Profile() {
     );
     const unsub = onSnapshot(q, (querySnapshot) => {
       querySnapshot.forEach((doc) => {
+        if (doc.data().role == "Venue Owner") {
+          fetchOwnerData();
+        }
         setProfile(doc.data());
+        console.log(doc.data());
       });
+
       setLoading(false);
     });
     return unsub;
@@ -140,10 +145,6 @@ export default function Profile() {
   useEffect(() => {
     if (user) {
       fetchProfile();
-      if (profile.role == "Venue Owner") {
-        fetchOwnerData();
-        console.log(ownerData.akunPembayaran);
-      }
     } else {
       router.push("/signin");
     }
@@ -176,7 +177,7 @@ export default function Profile() {
             </View>
           ) : (
             <TouchableOpacity onPress={pickImage}>
-              <View className="">
+              <View className="justify-center items-center w-full h-full">
                 {profile.fotoProfil ? (
                   <Image
                     source={{ uri: profile.fotoProfil }}

@@ -14,6 +14,7 @@ const Header = ({ user, router }: any) => {
     <Stack.Screen
       options={{
         title: "",
+        freezeOnBlur: true,
         headerShadowVisible: false,
         headerRight: () => (
           <View style={{ flexDirection: "row", gap: 12 }}>
@@ -29,13 +30,14 @@ const Header = ({ user, router }: any) => {
             <View>
               <TouchableOpacity
                 onPress={() => {
-                  onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                      router.push({ pathname: "/profile", params: user });
-                    } else {
-                      router.push({ pathname: "/signin" });
-                    }
-                  });
+                  if (auth.currentUser) {
+                    router.push({
+                      pathname: "/profile",
+                      params: user,
+                    });
+                  } else {
+                    router.push({ pathname: "/signin" });
+                  }
                 }}
               >
                 <FontAwesome6 name="user-circle" size={28} color="white" />
