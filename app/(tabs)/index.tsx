@@ -209,6 +209,7 @@ export default function HomeScreen() {
   const [isPressedTennis, setIsPressedTennis] = useState<boolean>(false);
   const router = useRouter();
   const params = useLocalSearchParams();
+  
   return (
     <View className="flex flex-1 mx-2">
       <Header user={params} router={router} />
@@ -324,6 +325,44 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
       <ScrollView className="mt-2 h-fit">
+      {lapangan.map((item) => (
+        <View key={`${item.type}-${item.id}`} className="my-2 flex flex-row h-[120px] bg-[#E6EDF5] shadow-lg shadow-slate-800 rounded-xl">
+          {/* Image */}
+          <Image
+            source={item.src}
+            className="mx-1 my-auto rounded-lg h-[100px]"
+          />
+          {/* Data */}
+          <View className="flex flex-col self-center mx-auto">
+            {/* Nama Lapangan */}
+            <Text className="text-lg font-bold text-center">{item.nama}</Text>
+            {/* Alamat */}
+            <Text className="text-xs text-center">{item.alamat}</Text>
+            {/* Harga */}
+            <Text className="text-xs text-center">Rp {item.hargaAsli.toLocaleString()}/jam</Text>
+            <View className="flex flex-row self-end mx-3">
+              {Array.from({ length: 5 }, (_, i) => (
+                <MaterialIcons
+                  key={i}
+                  name="star-rate"
+                  size={18}
+                  color={i < item.rating ? "#DFB300" : "#626262"}
+                />
+              ))}
+            </View>
+            <TouchableOpacity
+            onPress={() => {
+              console.log(item.id); // Log the item.id
+              router.push({ pathname: "/reservation", params: { id: item.id } });
+            }}
+              className="self-end bg-[#FDE767] w-[44%] h-[22%] rounded-xl items-center"
+            >
+              <Text className="font-bold text-center">Book00000000 !</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ))}
+      
         <View className="mt-2 flex flex-row h-[120px] bg-[#E6EDF5] shadow-lg shadow-slate-800 rounded-xl">
           {/* Image */}
           <Image
@@ -427,7 +466,7 @@ export default function HomeScreen() {
               <MaterialIcons name="star-rate" size={18} color="#626262" />
             </View>
             <TouchableOpacity
-              onPress={() => router}
+              onPress={() => router.push({ pathname: "/reservation", params: { id: "1" } })}
               className="self-end bg-[#FDE767] w-[44%] h-[22%] rounded-xl items-center"
             >
               <Text className="font-bold text-center">Book Now !</Text>
