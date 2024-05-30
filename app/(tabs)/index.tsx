@@ -28,7 +28,7 @@ const images = [
 const lapangan = [
   {
     type: "futsal",
-    id: "1",
+    id: "EjMKhdouZdN8BdtDev0A9cZOUz73",
     src: require("../../assets/images/futsal1.png"),
     nama: "Futsal Garuda",
     alamat: "Jalan Garuda Nusantara, Dago, Bandung",
@@ -355,7 +355,7 @@ export default function HomeScreen() {
             <TouchableOpacity
             onPress={() => {
               console.log(item.id); // Log the item.id
-              router.push({ pathname: "/reservation", params: { id: item.id } });
+              router.push({ pathname: "/reservation", params: { id: item.id,  } });
             }}
               className="self-end bg-[#FDE767] w-[44%] h-[22%] rounded-xl items-center"
             >

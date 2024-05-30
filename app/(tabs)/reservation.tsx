@@ -3,10 +3,8 @@ import { View, Text, TouchableOpacity, Button, StyleSheet, ScrollView } from 're
 import { db } from '@/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-
-const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+const daysOfWeek = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];
 const timeSlots = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
-
 const App: React.FC = () => {
   const [availableSlots, setAvailableSlots] = useState<{ [day: string]: { [hour: string]: boolean } }>({});
   const [selectedTimes, setSelectedTimes] = useState<any>([]);
@@ -30,6 +28,7 @@ const App: React.FC = () => {
           const data = docSnap.data().timeAvailable;
           const harga = docSnap.data().harga;
           const nama = docSnap.data().namaLapangan;
+          console.log(data);
           setAvailableSlots(data);
           setHarga(harga);
           setNama(nama);
@@ -43,6 +42,8 @@ const App: React.FC = () => {
 
     fetchTimeSlots();
   }, [id]);
+
+  
 
   const handleSelectDay = (day: string) => {
     setSelectedDay(day);
@@ -92,7 +93,7 @@ const App: React.FC = () => {
         const hour = parseInt(time.split(':')[0]);
         const isAvailable = availableSlots[day] && availableSlots[day][hour] !== undefined ? availableSlots[day][hour] : false;
         const isBookable = isAvailable !== false;
-      
+        console.log(isAvailable)
         return (
           <TouchableOpacity key={slot} onPress={() => handleSelectTime(time)} disabled={!isBookable}>
             <Text style={[
