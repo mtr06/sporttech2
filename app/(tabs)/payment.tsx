@@ -34,7 +34,11 @@ const PaymentScreen = () => {
       console.log('Uploaded a blob or file!');
       console.log('File available at', url);
       setUploading(false);
-      router.push('/paymentconfirmation'); // Navigate to PaymentConfirmation page
+      router.push({
+        pathname: 'paymentconfirmation',
+        params: { id, selectedTimes }
+      });
+       // Navigate to PaymentConfirmation page
     } catch (error) {
       console.error('Upload failed', error);
       setUploading(false);
