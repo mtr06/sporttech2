@@ -3,32 +3,38 @@ import { View, Text, TouchableOpacity, Button, StyleSheet, ScrollView } from 're
 import { db } from '@/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+
 const daysOfWeek = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];
 const timeSlots = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
-const App: React.FC = () => {
-  const [availableSlots, setAvailableSlots] = useState<{ [day: string]: { [hour: string]: boolean } }>({});
-  const [selectedTimes, setSelectedTimes] = useState<any>([]);
+
+interface AvailableSlots {
+  [day: string]: {
+    [hour: string]: boolean;
+  };
+}
+
+export default function App() {
+  const [availableSlots, setAvailableSlots] = useState<AvailableSlots>({});
+  const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [harga, setHarga] = useState<number>(0); 
   const [nama, setNama] = useState<string>('');
   const params = useLocalSearchParams();
   const router = useRouter();
-
   const id: string = params.id as string;
+
   useEffect(() => {
     const fetchTimeSlots = async () => {
       try {
         if (!id) return;
         const docRef = doc(db, 'lapangan', id);
-        
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
           const data = docSnap.data().timeAvailable;
           const harga = docSnap.data().harga;
           const nama = docSnap.data().namaLapangan;
-          console.log(data);
           setAvailableSlots(data);
           setHarga(harga);
           setNama(nama);
@@ -43,40 +49,28 @@ const App: React.FC = () => {
     fetchTimeSlots();
   }, [id]);
 
-  
-
   const handleSelectDay = (day: string) => {
     setSelectedDay(day);
   };
 
   const handleSelectTime = (time: string) => {
     if (!selectedDay) return;
-  
     const slot = `${selectedDay}_${time}`;
-    setSelectedTimes((prev: any) => {
-      if (prev.includes(slot)) {
-        const newSelectedTimes = prev.filter((t: any) => t !== slot);
-        setSelectedTimes(newSelectedTimes);
-        calculatePrice(newSelectedTimes);
-        return newSelectedTimes;
-      } else {
-        const newSelectedTimes = [...prev, slot];
-        setSelectedTimes(newSelectedTimes);
-        calculatePrice(newSelectedTimes);
-        return newSelectedTimes;
-      }
+    setSelectedTimes(prev => {
+      const newSelectedTimes = prev.includes(slot) ? prev.filter(t => t !== slot) : [...prev, slot];
+      calculatePrice(newSelectedTimes);
+      return newSelectedTimes;
     });
   };
-  
+
   const calculatePrice = (selectedTimes: string[]) => {
     const price = selectedTimes.length * harga;
     setTotalPrice(price);
   };
-  
+
   const handleBookSlots = () => {
     if (!selectedTimes.length) return;
 
-    // Navigate to Payment screen with necessary data
     router.push({
       pathname: 'payment',
       params: { id, nama, harga, totalPrice, selectedTimes }
@@ -90,10 +84,9 @@ const App: React.FC = () => {
       </TouchableOpacity>
       {selectedDay === day && timeSlots.map(time => {
         const slot = `${day}_${time}`;
-        const hour = parseInt(time.split(':')[0]);
+        const hour = parseInt(time.split(':')[0], 10);
         const isAvailable = availableSlots[day] && availableSlots[day][hour] !== undefined ? availableSlots[day][hour] : false;
         const isBookable = isAvailable !== false;
-        console.log(isAvailable)
         return (
           <TouchableOpacity key={slot} onPress={() => handleSelectTime(time)} disabled={!isBookable}>
             <Text style={[
@@ -116,11 +109,10 @@ const App: React.FC = () => {
       </View>
       <Text style={styles.totalPrice}>Total Price: Rp {totalPrice}</Text>
       <Button title="Book Slots" onPress={handleBookSlots} />
-
       <View style={styles.blankSpace} />
     </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -162,4 +154,3 @@ const styles = StyleSheet.create({
     height: 50,
   },
 });
-export default App;

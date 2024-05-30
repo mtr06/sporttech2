@@ -4,44 +4,43 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { db } from '@/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import * as ImagePicker from "expo-image-picker";
-import { getDownloadURL, ref, uploadBytes,getStorage } from 'firebase/storage';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+import { getDownloadURL, ref, uploadBytes, getStorage } from 'firebase/storage';
+
 const PaymentScreen = () => {
   const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [nomorAkun, setAkun] = useState<string>('');
   const [voucher, setVoucher] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [image, setImage] = useState<string | null>(null);
   const params = useLocalSearchParams();
+  const router = useRouter();
   const id: string = params.id as string;
   const nama: string = params.nama as string;
   const harga = params.harga;
   const totalHarga = params.totalPrice;
   const selectedTimes = params.selectedTimes ? params.selectedTimes : [];
-  const [image, setImage] = useState<string | null>(null);
 
   const uploadImage = async (imageUri: string | null) => {
-    if (!image) return;
+    if (!imageUri) return;
 
     setUploading(true);
-    const response = await fetch(image);
-    const blob = await response.blob();
-    const filename = selectedTimes;
-    const storageRef = ref(getStorage(), `bukti-pembayaran/${id}/${filename}`);
-    const idRef = ref(getStorage(), `bukti-pembayaran/${id}`);
-
-  
-    uploadBytes(storageRef, blob)
-      .then(snapshot => getDownloadURL(snapshot.ref))
-      .then(url => {
-        console.log('Uploaded a blob or file!');
-        console.log('File available at', url);
-        setUploading(false);
-      })
-      .catch(error => {
-        console.error('Upload failed', error);
-        setUploading(false);
-      });
+    try {
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+      const filename = selectedTimes;
+      const storageRef = ref(getStorage(), `bukti-pembayaran/${id}/${filename}`);
+      const snapshot = await uploadBytes(storageRef, blob);
+      const url = await getDownloadURL(snapshot.ref);
+      console.log('Uploaded a blob or file!');
+      console.log('File available at', url);
+      setUploading(false);
+      router.push('/paymentconfirmation'); // Navigate to PaymentConfirmation page
+    } catch (error) {
+      console.error('Upload failed', error);
+      setUploading(false);
+    }
   };
+
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -52,15 +51,13 @@ const PaymentScreen = () => {
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
-      uploadImage(result.assets[0].uri);
     }
   };
+
   const fetchData = async () => {
     try {
-      
       const data = doc(db, 'venueOwner', id);
       const dataSnap = await getDoc(data);
-
 
       if (dataSnap.exists()) {
         const akun = dataSnap.data().akunPembayaran;
@@ -84,6 +81,7 @@ const PaymentScreen = () => {
   console.log(nama);
   console.log(totalHarga);
   console.log(selectedTimes);
+  
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Metode Pembayaran</Text>
