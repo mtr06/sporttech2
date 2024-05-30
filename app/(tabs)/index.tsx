@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  FlatList,
 } from "react-native";
 import Header from "@/components/Header";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -15,8 +16,17 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
+import {
+  DocumentData,
+  collection,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { db } from "@/firebaseConfig";
 
 const images = [
   { id: "1", src: require("../../assets/images/iklan1.png") },
@@ -24,192 +34,55 @@ const images = [
   { id: "3", src: require("../../assets/images/iklan3.png") },
 ];
 
-const lapangan = [
-  {
-    type: "futsal",
-    id: "1",
-    src: require("../../assets/images/futsal1.png"),
-    nama: "Futsal Garuda",
-    alamat: "Jalan Garuda Nusantara, Dago, Bandung",
-    isPromo: false,
-    hargaAsli: 100000,
-    hargaPromo: 0,
-    rating: 5,
-  },
-  {
-    type: "futsal",
-    id: "2",
-    src: require("../../assets/images/futsal2.png"),
-    nama: "Futsal Senayan",
-    alamat: "Jalan Patal Senayan, Kebayoran, Jakarta Selatan",
-    isPromo: true,
-    hargaAsli: 150000,
-    hargaPromo: 135000,
-    rating: 4,
-  },
-  {
-    type: "futsal",
-    id: "3",
-    src: require("../../assets/images/futsal3.png"),
-    nama: "Lapangan Futsal Meruya",
-    alamat: "Jalan Meruya Selatan, Kembangan, Jakarta Barat",
-    isPromo: false,
-    hargaAsli: 50000,
-    hargaPromo: 0,
-    rating: 4,
-  },
-  {
-    type: "futsal",
-    id: "4",
-    src: require("../../assets/images/futsal4.png"),
-    nama: "Go Futsal",
-    alamat: "Jalan Palmerah Utara no 10, Grogol Utara,...",
-    isPromo: false,
-    hargaAsli: 85000,
-    hargaPromo: 0,
-    rating: 4,
-  },
-  {
-    type: "badminton",
-    id: "1",
-    src: require("../../assets/images/badminton1.png"),
-    nama: "Tangkas",
-    alamat: "Jalan Tanjung Duren Utara, Grogol, Jakar...",
-    isPromo: false,
-    hargaAsli: 89000,
-    hargaPromo: 0,
-    rating: 5,
-  },
-  {
-    type: "badminton",
-    id: "2",
-    src: require("../../assets/images/badminton2.png"),
-    nama: "Box to Box",
-    alamat: "Jalan Pluit Raya no 23, Tanjung Priok,...",
-    isPromo: false,
-    hargaAsli: 90000,
-    hargaPromo: 0,
-    rating: 4.5,
-  },
-  {
-    type: "badminton",
-    id: "3",
-    src: require("../../assets/images/badminton3.png"),
-    nama: "Gor Cisitu",
-    alamat: "Jalan Cisitu Raya no 22, Cisitu Lama, ...",
-    isPromo: false,
-    hargaAsli: 80000,
-    hargaPromo: 0,
-    rating: 4,
-  },
-  {
-    type: "badminton",
-    id: "4",
-    src: require("../../assets/images/badminton4.png"),
-    nama: "Gor PDAM",
-    alamat: "Jalan Ganesha no 88, Dago, Bandung",
-    isPromo: false,
-    hargaAsli: 70000,
-    hargaPromo: 0,
-    rating: 4,
-  },
-  {
-    type: "basket",
-    id: "1",
-    src: require("../../assets/images/basket1.png"),
-    nama: "Lapangan Basket Garuda",
-    alamat: "Jalan Tanah Abang 45, Kota, Jakarta P...",
-    isPromo: false,
-    hargaAsli: 150000,
-    hargaPromo: 0,
-    rating: 5,
-  },
-  {
-    type: "basket",
-    id: "2",
-    src: require("../../assets/images/basket2.png"),
-    nama: "Sport Center Gading",
-    alamat: "Jalan Gading Kirana no 10, Kelapa Ga...",
-    isPromo: false,
-    hargaAsli: 100000,
-    hargaPromo: 0,
-    rating: 4,
-  },
-  {
-    type: "basket",
-    id: "3",
-    src: require("../../assets/images/basket3.png"),
-    nama: "Art Basket",
-    alamat: "Jalan Saparua, Dago, Bandung",
-    isPromo: false,
-    hargaAsli: 80000,
-    hargaPromo: 0,
-    rating: 4,
-  },
-  {
-    type: "basket",
-    id: "4",
-    src: require("../../assets/images/basket4.png"),
-    nama: "Indoor Basket Bandung",
-    alamat: "Jalan Pasir Kaliki 88, Cimahi Utara,...",
-    isPromo: false,
-    hargaAsli: 100000,
-    hargaPromo: 0,
-    rating: 4,
-  },
-  {
-    type: "tennis",
-    id: "1",
-    src: require("../../assets/images/tennis1.png"),
-    nama: "Lapangan Tennis Senayan",
-    alamat: "Jalan Sumatra Selatan no 46, Grogol ...",
-    isPromo: false,
-    hargaAsli: 100000,
-    hargaPromo: 0,
-    rating: 5,
-  },
-  {
-    type: "tennis",
-    id: "2",
-    src: require("../../assets/images/tennis2.png"),
-    nama: "Tennis Puri",
-    alamat: "Puri Indah Mall lt. LG, Kembangan, Ja...",
-    isPromo: false,
-    hargaAsli: 100000,
-    hargaPromo: 0,
-    rating: 4.5,
-  },
-  {
-    type: "tennis",
-    id: "3",
-    src: require("../../assets/images/tennis3.png"),
-    nama: "Sport Center Pondok Indah",
-    alamat: "Jalan Pondok Indah Raya 23, Jakarta Se...",
-    isPromo: false,
-    hargaAsli: 150000,
-    hargaPromo: 0,
-    rating: 4,
-  },
-  {
-    type: "tennis",
-    id: "4",
-    src: require("../../assets/images/tennis4.png"),
-    nama: "SCBD Tennis Club",
-    alamat: "Jalan Kuningan Raya 77, Semanggi, Jak...",
-    isPromo: false,
-    hargaAsli: 250000,
-    hargaPromo: 0,
-    rating: 4,
-  },
-];
-
 export default function HomeScreen() {
   const [isPressedFutsal, setIsPressedFutsal] = useState<boolean>(true);
   const [isPressedBadminton, setIsPressedBadminton] = useState<boolean>(false);
   const [isPressedBasket, setIsPressedBasket] = useState<boolean>(false);
   const [isPressedTennis, setIsPressedTennis] = useState<boolean>(false);
+  const [jenisLapangan, setJenisLapangan] = useState<any>("Futsal");
+  const [isFilter, setIsFilter] = useState<boolean>(false);
+  const [lapangan, setLapangan] = useState<any>({});
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
+  const user = getAuth().currentUser;
   const params = useLocalSearchParams();
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
+
+  const fetchLapangan = () => {
+    const q = query(collection(db, "lapangan"));
+    const unsub = onSnapshot(q, (querySnapshot) => {
+      const lapanganData: any = {};
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const id = doc.id;
+        lapanganData[id] = data;
+        console.log(doc.data());
+      });
+      setLapangan(lapanganData);
+    });
+    setLoading(false);
+    return unsub;
+  };
+
+  useEffect(() => {
+    fetchLapangan();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <Text className="w-full align-middle text-center text-xl font-bold">
+        Loading...
+      </Text>
+    );
+  }
+
   return (
     <View className="flex flex-1 mx-2">
       <Header user={params} router={router} />
@@ -261,6 +134,7 @@ export default function HomeScreen() {
       <View className="mt-3 flex flex-row justify-between mx-2">
         <TouchableOpacity
           onPress={() => {
+            setJenisLapangan("Futsal");
             setIsPressedFutsal(true);
             setIsPressedBadminton(false);
             setIsPressedBasket(false);
@@ -277,6 +151,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
+            setJenisLapangan("Badminton");
             setIsPressedFutsal(false);
             setIsPressedBadminton(true);
             setIsPressedBasket(false);
@@ -293,6 +168,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
+            setJenisLapangan("Basket");
             setIsPressedFutsal(false);
             setIsPressedBadminton(false);
             setIsPressedBasket(true);
@@ -309,6 +185,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
+            setJenisLapangan("Tennis");
             setIsPressedFutsal(false);
             setIsPressedBadminton(false);
             setIsPressedBasket(false);
@@ -324,148 +201,60 @@ export default function HomeScreen() {
           </Text>
         </TouchableOpacity>
       </View>
-      <ScrollView className="mt-2 h-fit">
-        <View className="mt-2 flex flex-row h-[120px] bg-[#E6EDF5] shadow-lg shadow-slate-800 rounded-xl">
-          {/* Image */}
-          <Image
-            source={require("../../assets/images/futsal1.png")}
-            className="mx-1 my-auto rounded-lg h-[100px] w-[24%]"
-          />
-          {/* Data */}
-          <View className="flex flex-col self-center w-[72%]">
-            {/* Nama Lapangan */}
-            <Text className="text-lg font-bold text-center">
-              Lapangan Garuda
-            </Text>
-            {/* Alamat */}
-            <Text className="text-xs text-center">
-              Jalan Garuda Nusantara, Dago, Bandung
-            </Text>
-            {/* Harga */}
-            <Text className="text-xs text-center">Rp 100.000/jam</Text>
-            <View className="flex flex-row self-end mx-3">
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-            </View>
-            <TouchableOpacity
-              onPress={() => router}
-              className="self-end bg-[#FDE767] w-[41%] h-[22%] rounded-xl items-center"
+      <ScrollView className="mx-2 mt-2 h-fit">
+        {/* Berdasarkan query */}
+        {Object.keys(lapangan).map((id) =>
+          lapangan[id].kategori === jenisLapangan ? (
+            <View
+              key={id}
+              className="mt-2 px-2 flex flex-row h-[120px] bg-[#C9E2FF] rounded-xl border-2 border-slate-400"
             >
-              <Text className="font-bold text-center">Book Now !</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View className="mt-2 flex flex-row h-[120px] bg-[#E6EDF5] shadow-lg shadow-slate-800 rounded-xl">
-          {/* Image */}
-          <Image
-            source={require("../../assets/images/futsal2.png")}
-            className="mx-1 my-auto rounded-lg h-[100px] w-[24%]"
-          />
-          {/* Data */}
-          <View className="flex flex-col self-center mx-auto">
-            {/* Nama Lapangan */}
-            <Text className="text-lg font-bold text-center">
-              Futsal Senayan
-            </Text>
-            {/* Alamat */}
-            <Text className="text-xs text-center">
-              Jalan Patal Senayan, Kebayoran, Jakarta Selatan
-            </Text>
-            {/* Harga */}
-            <View className="flex-row justify-center gap-x-2">
-              <Text
-                className="text-xs text-center"
-                style={{
-                  textDecorationLine: "line-through",
-                }}
-              >
-                Rp 150.000/jam
-              </Text>
-              <Text className="text-xs text-center">Rp 135.000/jam</Text>
+              {/* Image */}
+              <Image
+                source={
+                  lapangan[id].gambar[1] != ""
+                    ? { uri: lapangan[id].gambar[1] }
+                    : lapangan[id].gambar[2] != ""
+                    ? { uri: lapangan[id].gambar[2] }
+                    : lapangan[id].gambar[3] != ""
+                    ? { uri: lapangan[id].gambar[3] }
+                    : { uri: lapangan[id].gambar[4] }
+                }
+                className="my-auto rounded-lg h-[100px] w-[23%]"
+              />
+              {/* Data */}
+              <View className="flex flex-col self-center mx-auto w-[71%]">
+                {/* Nama Lapangan */}
+                <Text className="text-lg font-bold text-start">
+                  {lapangan[id].namaLapangan}
+                </Text>
+                {/* Alamat */}
+                <Text className="text-xs text-start">
+                  {lapangan[id].alamat}
+                </Text>
+                {/* Harga */}
+                <Text className="text-xs text-start">
+                  Rp {lapangan[id].harga}/jam
+                </Text>
+                <View className="flex flex-row self-end mx-3">
+                  <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                  <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                  <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                  <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                  <MaterialIcons name="star-rate" size={18} color="#626262" />
+                </View>
+                <TouchableOpacity
+                  onPress={() => router}
+                  className="self-end bg-[#FDE767] w-[44%] h-[22%] rounded-xl items-center"
+                >
+                  <Text className="font-bold text-center">Book Now !</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-
-            <View className="flex flex-row self-end mx-3">
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#626262" />
-            </View>
-            <TouchableOpacity
-              onPress={() => router}
-              className="self-end bg-[#FDE767] w-[44%] h-[22%] rounded-xl items-center"
-            >
-              <Text className="font-bold text-center">Book Now !</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View className="mt-2 flex flex-row h-[120px] bg-[#E6EDF5] shadow-lg shadow-slate-800 rounded-xl">
-          {/* Image */}
-          <Image
-            source={require("../../assets/images/futsal3.png")}
-            className="mx-1 my-auto rounded-lg h-[100px] w-[23%]"
-          />
-          {/* Data */}
-          <View className="flex flex-col self-center mx-auto w-[71%]">
-            {/* Nama Lapangan */}
-            <Text className="text-lg font-bold text-center">
-              Lapangan Futsal Meruya
-            </Text>
-            {/* Alamat */}
-            <Text className="text-xs text-center">
-              Jalan Meruya Selatan, Kembangan, Jakarta Barat
-            </Text>
-            {/* Harga */}
-            <Text className="text-xs text-center">Rp 50.000/jam</Text>
-            <View className="flex flex-row self-end mx-3">
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#626262" />
-            </View>
-            <TouchableOpacity
-              onPress={() => router}
-              className="self-end bg-[#FDE767] w-[44%] h-[22%] rounded-xl items-center"
-            >
-              <Text className="font-bold text-center">Book Now !</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View className="my-2 flex flex-row h-[120px] bg-[#E6EDF5] shadow-lg shadow-slate-800 rounded-xl">
-          {/* Image */}
-          <Image
-            source={require("../../assets/images/futsal1.png")}
-            className="mx-1 my-auto rounded-lg h-[100px]"
-          />
-          {/* Data */}
-          <View className="flex flex-col self-center mx-auto">
-            {/* Nama Lapangan */}
-            <Text className="text-lg font-bold text-center">Go Futsal</Text>
-            {/* Alamat */}
-            <Text className="text-xs text-center">
-              Jalan Palmerah Utara no 10, Grogol Utara, Jaka...
-            </Text>
-            {/* Harga */}
-            <Text className="text-xs text-center">Rp 100.000/jam</Text>
-            <View className="flex flex-row self-end mx-3">
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-              <MaterialIcons name="star-rate" size={18} color="#626262" />
-            </View>
-            <TouchableOpacity
-              onPress={() => router}
-              className="self-end bg-[#FDE767] w-[44%] h-[22%] rounded-xl items-center"
-            >
-              <Text className="font-bold text-center">Book Now !</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+          ) : (
+            ""
+          )
+        )}
       </ScrollView>
     </View>
   );
@@ -510,3 +299,10 @@ const styles = StyleSheet.create({
     height: "100%",
   },
 });
+function fetchOwnerData() {
+  throw new Error("Function not implemented.");
+}
+
+function setProfile(arg0: DocumentData) {
+  throw new Error("Function not implemented.");
+}
