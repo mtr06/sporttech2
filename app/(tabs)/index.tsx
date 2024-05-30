@@ -11,6 +11,7 @@ import {
 import Header from "@/components/Header";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Swiper from "react-native-swiper";
+
 import {
   FontAwesome,
   MaterialCommunityIcons,

@@ -1,125 +1,156 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { StyleSheet, Image, Platform } from "react-native";
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Button, StyleSheet, ScrollView } from 'react-native';
+import { db } from '@/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { Collapsible } from "@/components/Collapsible";
-import { ExternalLink } from "@/components/ExternalLink";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import Header from "@/components/Header";
+const daysOfWeek = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];
+const timeSlots = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
 
-export default function TabTwoScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
-      headerImage={
-        <Ionicons size={310} name="code-slash" style={styles.headerImage} />
+interface AvailableSlots {
+  [day: string]: {
+    [hour: string]: boolean;
+  };
+}
+
+export default function App() {
+  const [availableSlots, setAvailableSlots] = useState<AvailableSlots>({});
+  const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
+  const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [selectedDay, setSelectedDay] = useState<string>('');
+  const [harga, setHarga] = useState<number>(0); 
+  const [nama, setNama] = useState<string>('');
+  const params = useLocalSearchParams();
+  const router = useRouter();
+  const id: string = params.id as string;
+
+  useEffect(() => {
+    const fetchTimeSlots = async () => {
+      try {
+        if (!id) return;
+        const docRef = doc(db, 'lapangan', id);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data().timeAvailable;
+          const harga = docSnap.data().harga;
+          const nama = docSnap.data().namaLapangan;
+          setAvailableSlots(data);
+          setHarga(harga);
+          setNama(nama);
+        } else {
+          console.log('No such document!');
+        }
+      } catch (error) {
+        console.error('Error fetching document:', error);
       }
-    >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>
-        This app includes example code to help you get started.
-      </ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText>{" "}
-          and{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{" "}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the
-          web version, press <ThemedText type="defaultSemiBold">w</ThemedText>{" "}
-          in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the{" "}
-          <ThemedText type="defaultSemiBold">@2x</ThemedText> and{" "}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to
-          provide files for different screen densities
-        </ThemedText>
-        <Image
-          source={require("@/assets/images/react-logo.png")}
-          style={{ alignSelf: "center" }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText>{" "}
-          to see how to load{" "}
-          <ThemedText style={{ fontFamily: "SpaceMono" }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{" "}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook
-          lets you inspect what the user's current color scheme is, and so you
-          can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{" "}
-          <ThemedText type="defaultSemiBold">
-            components/HelloWave.tsx
-          </ThemedText>{" "}
-          component uses the powerful{" "}
-          <ThemedText type="defaultSemiBold">
-            react-native-reanimated
-          </ThemedText>{" "}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The{" "}
-              <ThemedText type="defaultSemiBold">
-                components/ParallaxScrollView.tsx
-              </ThemedText>{" "}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    };
+
+    fetchTimeSlots();
+  }, [id]);
+
+  const handleSelectDay = (day: string) => {
+    setSelectedDay(day);
+  };
+
+  const handleSelectTime = (time: string) => {
+    if (!selectedDay) return;
+    const slot = `${selectedDay}_${time}`;
+    setSelectedTimes(prev => {
+      const newSelectedTimes = prev.includes(slot) ? prev.filter(t => t !== slot) : [...prev, slot];
+      calculatePrice(newSelectedTimes);
+      return newSelectedTimes;
+    });
+  };
+
+  const calculatePrice = (selectedTimes: string[]) => {
+    const price = selectedTimes.length * harga;
+    setTotalPrice(price);
+  };
+
+  const handleBookSlots = () => {
+    if (!selectedTimes.length) return;
+
+    router.push({
+      pathname: 'payment',
+      params: { id, nama, harga, totalPrice, selectedTimes }
+    });
+  };
+
+  const renderTimeSlotsForDay = (day: string) => (
+    <View key={day} style={styles.dayColumn}>
+      <TouchableOpacity onPress={() => handleSelectDay(day)}>
+        <Text style={[styles.dayTitle, selectedDay === day && styles.selectedDay]}>{day}</Text>
+      </TouchableOpacity>
+      {selectedDay === day && timeSlots.map(time => {
+        const slot = `${day}_${time}`;
+        const hour = parseInt(time.split(':')[0], 10);
+        const isAvailable = availableSlots[day] && availableSlots[day][hour] !== undefined ? availableSlots[day][hour] : false;
+        const isBookable = isAvailable !== false;
+        return (
+          <TouchableOpacity key={slot} onPress={() => handleSelectTime(time)} disabled={!isBookable}>
+            <Text style={[
+              styles.timeSlot,
+              { backgroundColor: selectedTimes.includes(slot) ? 'lightgreen' : isAvailable ? 'green' : 'red' }
+            ]}>
+              {time}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+
+  return (
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>{nama}</Text>
+      <View style={styles.calendar}>
+        {daysOfWeek.map(day => renderTimeSlotsForDay(day))}
+      </View>
+      <Text style={styles.totalPrice}>Total Price: Rp {totalPrice}</Text>
+      <Button title="Book Slots" onPress={handleBookSlots} />
+      <View style={styles.blankSpace} />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: "#808080",
-    bottom: -90,
-    left: -35,
-    position: "absolute",
+  container: {
+    padding: 20,
+    flex: 1,
   },
-  titleContainer: {
-    flexDirection: "row",
-    gap: 8,
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  calendar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dayColumn: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  dayTitle: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  timeSlot: {
+    padding: 10,
+    marginVertical: 5,
+    width: 60,
+    textAlign: 'center',
+  },
+  totalPrice: {
+    fontSize: 24,
+    marginTop: 20,
+    textAlign: 'center',
+  },
+  selectedDay: {
+    fontWeight: 'bold',
+  },
+  blankSpace: {
+    height: 50,
   },
 });
