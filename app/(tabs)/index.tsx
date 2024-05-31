@@ -14,6 +14,7 @@ import Swiper from "react-native-swiper";
 
 import {
   FontAwesome,
+  Ionicons,
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
@@ -44,6 +45,8 @@ export default function HomeScreen() {
   const [isFilter, setIsFilter] = useState<boolean>(false);
   const [lapangan, setLapangan] = useState<any>({});
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [rating, setRating] = useState<number>();
+  const [harga, setHarga] = useState<number>();
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
   const user = getAuth().currentUser;
@@ -70,6 +73,23 @@ export default function HomeScreen() {
     });
     setLoading(false);
     return unsub;
+  };
+
+  const filterKategori = () => {
+    return Object.values(lapangan).filter(
+      (item: any) =>
+        (!jenisLapangan || item.kategori == jenisLapangan) &&
+        (rating ? item.rating >= rating : true) &&
+        (harga
+          ? harga == 1
+            ? item.harga <= 50000
+            : harga == 2
+            ? item.harga <= 100000 && item.harga > 50000
+            : harga == 3
+            ? item.harga <= 150000 && item.harga > 100000
+            : item.harga >= 150000
+          : true)
+    );
   };
 
   useEffect(() => {
@@ -109,154 +129,310 @@ export default function HomeScreen() {
         <Text></Text>
       </View>
       {/* Search & Filter */}
-      <View className="flex-row justify-between mx-1">
-        <View className="border-2 border-slate-600 rounded-lg w-[87.5%]">
-          <View className="flex-row mx-1 my-1 w-full">
-            <TouchableOpacity onPress={() => router} className="self-center">
-              <FontAwesome name="search" size={24} color="rgba(0,0,0,.6)" />
+      {isFilter ? (
+        <View className="bg-[#E6EDF5] flex flex-col rounded-xl border-[1px]">
+          <View className="mx-2 mt-1 flex flex-row items-center justify-end">
+            <Text className="text-2xl font-bold mx-auto">Filter</Text>
+            <TouchableOpacity
+              onPress={() => {
+                setRating(NaN);
+                setHarga(NaN);
+                setIsFilter(false);
+              }}
+            >
+              <Ionicons name="close" size={32} color="black" className="r-0" />
             </TouchableOpacity>
-            <TextInput
-              placeholder="Search"
-              className="mx-2 text-lg self-center"
-            ></TextInput>
+          </View>
+          <View className="mx-3">
+            <Text className="text-lg font-bold">Bintang</Text>
+            <View className="my-2 flex flex-row justify-between items-center">
+              <TouchableOpacity
+                onPress={() => (rating == 1 ? setRating(NaN) : setRating(1))}
+                className={`${
+                  rating === 1 ? "bg-[#24A0ED]" : "bg-white"
+                } border-[1.2px] px-3 py-1 flex flex-row rounded-xl`}
+              >
+                <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                <Text>1</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => (rating == 2 ? setRating(NaN) : setRating(2))}
+                className={`${
+                  rating === 2 ? "bg-[#24A0ED]" : "bg-white"
+                } border-[1.2px] px-3 py-1 flex flex-row rounded-xl`}
+              >
+                <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                <Text>2</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => (rating == 3 ? setRating(NaN) : setRating(3))}
+                className={`${
+                  rating === 3 ? "bg-[#24A0ED]" : "bg-white"
+                } border-[1.2px] px-3 py-1 flex flex-row rounded-xl`}
+              >
+                <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                <Text>3</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => (rating == 4 ? setRating(NaN) : setRating(4))}
+                className={`${
+                  rating === 4 ? "bg-[#24A0ED]" : "bg-white"
+                } border-[1.2px] px-3 py-1 flex flex-row rounded-xl`}
+              >
+                <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                <Text>4</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => (rating == 5 ? setRating(NaN) : setRating(5))}
+                className={`${
+                  rating === 5 ? "bg-[#24A0ED]" : "bg-white"
+                } border-[1.2px] px-3 py-1 flex flex-row rounded-xl`}
+              >
+                <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                <Text>5</Text>
+              </TouchableOpacity>
+            </View>
+            <Text className="text-lg font-bold">Harga</Text>
+            <View className="px-2 py-1 rounded-lg flex flex-row mt-2 bg-white">
+              <Text className="text-md text-[#757575] self-center">
+                Rp 0 - Rp 50.000
+              </Text>
+              <TouchableOpacity
+                onPress={() => (harga == 1 ? setHarga(NaN) : setHarga(1))}
+                className="h-[20px] w-[20px] rounded-[20px] border-2 self-center justify-center items-center ml-auto"
+              >
+                {harga === 1 ? (
+                  <View className="h-[13px] w-[13px] rounded-[20px] bg-[#24A0ED]" />
+                ) : (
+                  ""
+                )}
+              </TouchableOpacity>
+            </View>
+            <View className="px-2 py-1 rounded-lg flex flex-row mt-2 bg-white">
+              <Text className="text-md text-[#757575] self-center">
+                Rp 50.000 - Rp 100.000
+              </Text>
+              <TouchableOpacity
+                onPress={() => (harga == 2 ? setHarga(NaN) : setHarga(2))}
+                className="h-[20px] w-[20px] rounded-[20px] border-2 self-center justify-center items-center ml-auto"
+              >
+                {harga === 2 ? (
+                  <View className="h-[13px] w-[13px] rounded-[20px] bg-[#24A0ED]" />
+                ) : (
+                  ""
+                )}
+              </TouchableOpacity>
+            </View>
+            <View className="px-2 py-1 rounded-lg flex flex-row mt-2 bg-white">
+              <Text className="text-md text-[#757575] self-center">
+                Rp 100.000 - Rp 150.000
+              </Text>
+              <TouchableOpacity
+                onPress={() => (harga == 3 ? setHarga(NaN) : setHarga(3))}
+                className="h-[20px] w-[20px] rounded-[20px] border-2 self-center justify-center items-center ml-auto"
+              >
+                {harga === 3 ? (
+                  <View className="h-[13px] w-[13px] rounded-[20px] bg-[#24A0ED]" />
+                ) : (
+                  ""
+                )}
+              </TouchableOpacity>
+            </View>
+            <View className="px-2 py-1 rounded-lg flex flex-row mt-2 bg-white">
+              <Text className="text-md text-[#757575] self-center">
+                {">"} Rp 150.000
+              </Text>
+              <TouchableOpacity
+                onPress={() => (harga == 4 ? setHarga(NaN) : setHarga(4))}
+                className="h-[20px] w-[20px] rounded-[20px] border-2 self-center justify-center items-center ml-auto"
+              >
+                {harga === 4 ? (
+                  <View className="h-[13px] w-[13px] rounded-[20px] bg-[#24A0ED]" />
+                ) : (
+                  ""
+                )}
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                setRating(NaN);
+                setHarga(NaN);
+              }}
+              className=" bg-[#808080]/50 rounded-lg py-1 mt-6 items-center justify-center"
+            >
+              <Text className="text-xl font-bold">Reset</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setIsFilter(false)}
+              className="mb-[22%] bg-[#FDE767] rounded-lg py-1 mt-3 items-center justify-center"
+            >
+              <Text className="text-xl font-bold">Selesai</Text>
+            </TouchableOpacity>
           </View>
         </View>
-        <View className="w-[10%] self-center items-center">
-          <TouchableOpacity onPress={() => router}>
-            <MaterialCommunityIcons
-              name="filter-outline"
-              size={32}
-              color="rgba(0,0,0,.7)"
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-      {/* Kategori */}
-      <View className="mt-3 flex flex-row justify-between mx-2">
-        <TouchableOpacity
-          onPress={() => {
-            setJenisLapangan("Futsal");
-            setIsPressedFutsal(true);
-            setIsPressedBadminton(false);
-            setIsPressedBasket(false);
-            setIsPressedTennis(false);
-          }}
-          style={{
-            backgroundColor: isPressedFutsal ? "#70E2DF" : "transparent",
-          }}
-          className="min-w-[20%] rounded-xl"
-        >
-          <Text className="text-lg text-textButton font-bold text-center">
-            Futsal
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => {
-            setJenisLapangan("Badminton");
-            setIsPressedFutsal(false);
-            setIsPressedBadminton(true);
-            setIsPressedBasket(false);
-            setIsPressedTennis(false);
-          }}
-          style={{
-            backgroundColor: isPressedBadminton ? "#70E2DF" : "transparent",
-          }}
-          className="min-w-[27%] rounded-xl"
-        >
-          <Text className="text-lg text-textButton font-bold text-center">
-            Badminton
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => {
-            setJenisLapangan("Basket");
-            setIsPressedFutsal(false);
-            setIsPressedBadminton(false);
-            setIsPressedBasket(true);
-            setIsPressedTennis(false);
-          }}
-          style={{
-            backgroundColor: isPressedBasket ? "#70E2DF" : "transparent",
-          }}
-          className="min-w-[20%] rounded-xl"
-        >
-          <Text className="text-lg text-textButton font-bold text-center">
-            Basket
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => {
-            setJenisLapangan("Tennis");
-            setIsPressedFutsal(false);
-            setIsPressedBadminton(false);
-            setIsPressedBasket(false);
-            setIsPressedTennis(true);
-          }}
-          style={{
-            backgroundColor: isPressedTennis ? "#70E2DF" : "transparent",
-          }}
-          className="min-w-[20%] rounded-xl"
-        >
-          <Text className="text-lg text-textButton font-bold text-center">
-            Tennis
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <ScrollView className="mx-2 mt-2 h-fit">
-        {/* Berdasarkan query */}
-        {Object.keys(lapangan).map((id) =>
-          lapangan[id].kategori === jenisLapangan ? (
-            <View
-              key={id}
-              className="mt-2 px-2 flex flex-row h-[120px] bg-[#C9E2FF] rounded-xl border-2 border-slate-400"
-            >
-              {/* Image */}
-              <Image
-                source={
-                  lapangan[id].gambar[1] != ""
-                    ? { uri: lapangan[id].gambar[1] }
-                    : lapangan[id].gambar[2] != ""
-                    ? { uri: lapangan[id].gambar[2] }
-                    : lapangan[id].gambar[3] != ""
-                    ? { uri: lapangan[id].gambar[3] }
-                    : { uri: lapangan[id].gambar[4] }
-                }
-                className="my-auto rounded-lg h-[100px] w-[23%]"
-              />
-              {/* Data */}
-              <View className="flex flex-col self-center mx-auto w-[71%]">
-                {/* Nama Lapangan */}
-                <Text className="text-lg font-bold text-start">
-                  {lapangan[id].namaLapangan}
-                </Text>
-                {/* Alamat */}
-                <Text className="text-xs text-start">
-                  {lapangan[id].alamat}
-                </Text>
-                {/* Harga */}
-                <Text className="text-xs text-start">
-                  Rp {lapangan[id].harga}/jam
-                </Text>
-                <View className="flex flex-row self-end mx-3">
-                  <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-                  <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-                  <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-                  <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-                  <MaterialIcons name="star-rate" size={18} color="#626262" />
-                </View>
+      ) : (
+        <>
+          <View className="flex-row justify-between mx-1">
+            <View className="border-2 border-slate-600 rounded-lg w-[87.5%]">
+              <View className="flex-row mx-1 my-1 w-full">
                 <TouchableOpacity
                   onPress={() => router}
-                  className="self-end bg-[#FDE767] w-[44%] h-[22%] rounded-xl items-center"
+                  className="self-center"
                 >
-                  <Text className="font-bold text-center">Book Now !</Text>
+                  <FontAwesome name="search" size={24} color="rgba(0,0,0,.6)" />
                 </TouchableOpacity>
+                <TextInput
+                  placeholder="Search"
+                  className="mx-2 text-lg w-[80%] self-center"
+                ></TextInput>
               </View>
             </View>
-          ) : (
-            ""
-          )
-        )}
-      </ScrollView>
+            <View className="w-[10%] self-center items-center">
+              <TouchableOpacity
+                onPress={() => setIsFilter(true)}
+                className={`${
+                  rating
+                    ? "bg-[#70E2DF] border-2"
+                    : harga
+                    ? "bg-[#70E2DF] border-2"
+                    : ""
+                } rounded-lg`}
+              >
+                <MaterialCommunityIcons
+                  name="filter-outline"
+                  size={32}
+                  color="rgba(0,0,0,.7)"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+          {/* Kategori */}
+          <View className="mt-3 flex flex-row justify-between mx-2">
+            <TouchableOpacity
+              onPress={() => {
+                setJenisLapangan("Futsal");
+                setIsPressedFutsal(true);
+                setIsPressedBadminton(false);
+                setIsPressedBasket(false);
+                setIsPressedTennis(false);
+              }}
+              style={{
+                backgroundColor: isPressedFutsal ? "#70E2DF" : "transparent",
+              }}
+              className="min-w-[20%] rounded-xl"
+            >
+              <Text className="text-lg text-textButton font-bold text-center">
+                Futsal
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setJenisLapangan("Badminton");
+                setIsPressedFutsal(false);
+                setIsPressedBadminton(true);
+                setIsPressedBasket(false);
+                setIsPressedTennis(false);
+              }}
+              style={{
+                backgroundColor: isPressedBadminton ? "#70E2DF" : "transparent",
+              }}
+              className="min-w-[27%] rounded-xl"
+            >
+              <Text className="text-lg text-textButton font-bold text-center">
+                Badminton
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setJenisLapangan("Basket");
+                setIsPressedFutsal(false);
+                setIsPressedBadminton(false);
+                setIsPressedBasket(true);
+                setIsPressedTennis(false);
+              }}
+              style={{
+                backgroundColor: isPressedBasket ? "#70E2DF" : "transparent",
+              }}
+              className="min-w-[20%] rounded-xl"
+            >
+              <Text className="text-lg text-textButton font-bold text-center">
+                Basket
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setJenisLapangan("Tennis");
+                setIsPressedFutsal(false);
+                setIsPressedBadminton(false);
+                setIsPressedBasket(false);
+                setIsPressedTennis(true);
+              }}
+              style={{
+                backgroundColor: isPressedTennis ? "#70E2DF" : "transparent",
+              }}
+              className="min-w-[20%] rounded-xl"
+            >
+              <Text className="text-lg text-textButton font-bold text-center">
+                Tennis
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView className="mx-2 mt-2 h-fit">
+            {/* Berdasarkan query */}
+            {filterKategori().map((item: any) => (
+              <View
+                key={item.id}
+                className="mt-2 px-2 flex flex-row h-[120px] bg-[#C9E2FF] rounded-xl border-2 border-slate-400"
+              >
+                {/* Image */}
+                <Image
+                  source={
+                    item.gambar[1] != ""
+                      ? { uri: item.gambar[1] }
+                      : item.gambar[2] != ""
+                      ? { uri: item.gambar[2] }
+                      : item.gambar[3] != ""
+                      ? { uri: item.gambar[3] }
+                      : { uri: item.gambar[4] }
+                  }
+                  className="my-auto rounded-lg h-[100px] w-[23%]"
+                />
+                {/* Data */}
+                <View className="flex flex-col self-center mx-auto w-[71%]">
+                  {/* Nama Lapangan */}
+                  <Text className="text-lg font-bold text-start">
+                    {item.namaLapangan}
+                  </Text>
+                  {/* Alamat */}
+                  <Text className="text-xs text-start">{item.alamat}</Text>
+                  {/* Harga */}
+                  <Text className="text-xs text-start">
+                    Rp {item.harga}/jam
+                  </Text>
+                  <View className="flex flex-row self-end mx-3">
+                    <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                    <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                    <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                    <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                    <MaterialIcons name="star-rate" size={18} color="#626262" />
+                  </View>
+                  <TouchableOpacity
+                    onPress={() =>
+                      router.push({
+                        pathname: "/reservation",
+                        params: { id: item.id },
+                      })
+                    }
+                    className="self-end bg-[#FDE767] w-[44%] h-[22%] rounded-xl items-center"
+                  >
+                    <Text className="font-bold text-center">Book Now !</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </>
+      )}
     </View>
   );
 }
