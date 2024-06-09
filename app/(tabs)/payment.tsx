@@ -36,7 +36,7 @@ const PaymentScreen = () => {
       setUploading(false);
       router.push({
         pathname: 'paymentconfirmation',
-        params: { id, selectedTimes }
+        params: { id, selectedTimes, totalHarga }
       });
        // Navigate to PaymentConfirmation page
     } catch (error) {

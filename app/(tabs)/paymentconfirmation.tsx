@@ -2,13 +2,15 @@ import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { db } from '@/firebaseConfig';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-
+import { doc, collection, updateDoc, addDoc } from 'firebase/firestore';
+import { getAuth, signOut } from "firebase/auth";
 const PaymentConfirmation = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
   const id = params.id as string;
+  const totalHarga =  params.totalHarga
   const selectedTimes = params.selectedTimes ? params.selectedTimes.split(',') : [];
+  const userId = getAuth().currentUser!!.uid;
   console.log(id);
   console.log(selectedTimes);
 
@@ -45,9 +47,27 @@ const PaymentConfirmation = () => {
       console.error('Error updating Firestore data:', error);
     }
   };
+  const addNewOrder = async (selectedTimes, id, totalHarga) => {
+    try {
+      const orderRef = collection(db, 'pesanan', userId, 'detailPesanan');
 
+      const newOrder = {
+        detailPesanan:selectedTimes,
+        idLapangan: id,
+        statusPesanan: "ongoing",
+        totalHarga:totalHarga
+      };
+
+      await addDoc(orderRef, newOrder);
+
+      console.log('New order added successfully');
+    } catch (error) {
+      console.error('Error adding new order:', error);
+    }
+  };
   useEffect(() => {
     updateFirestoreData(selectedTimes);
+    addNewOrder(selectedTimes, id, totalHarga);
   }, []);
 
   return (
