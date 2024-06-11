@@ -33,7 +33,13 @@ import {
   getDownloadURL,
 } from "firebase/storage";
 
-export default function Inputlapangan() {
+interface timeAvailableInterface {
+  [day: string]: {
+    [hour: string]: boolean;
+  };
+}
+
+export default function SuntingLapangan() {
   const [venueName, setVenueName] = useState<String>("");
   const [venueAddress, setVenueAddress] = useState<String>("");
   const [venueDescription, setVenueDescription] = useState<String>("");
@@ -54,136 +60,18 @@ export default function Inputlapangan() {
   const [progress3, setProgress3] = useState(0);
   const [uploading4, setUploading4] = useState(false);
   const [progress4, setProgress4] = useState(0);
+  const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const [timeAvailable, setTimeAvailable] = useState<any>({
-    MIN: {
-      7: false,
-      8: false,
-      9: false,
-      10: false,
-      11: false,
-      12: false,
-      13: false,
-      14: false,
-      15: false,
-      16: false,
-      17: false,
-      18: false,
-      19: false,
-      20: false,
-      21: false,
-      22: false,
-    },
-    SEN: {
-      7: false,
-      8: false,
-      9: false,
-      10: false,
-      11: false,
-      12: false,
-      13: false,
-      14: false,
-      15: false,
-      16: false,
-      17: false,
-      18: false,
-      19: false,
-      20: false,
-      21: false,
-      22: false,
-    },
-    SEL: {
-      7: false,
-      8: false,
-      9: false,
-      10: false,
-      11: false,
-      12: false,
-      13: false,
-      14: false,
-      15: false,
-      16: false,
-      17: false,
-      18: false,
-      19: false,
-      20: false,
-      21: false,
-      22: false,
-    },
-    RAB: {
-      7: false,
-      8: false,
-      9: false,
-      10: false,
-      11: false,
-      12: false,
-      13: false,
-      14: false,
-      15: false,
-      16: false,
-      17: false,
-      18: false,
-      19: false,
-      20: false,
-      21: false,
-      22: false,
-    },
-    KAM: {
-      7: false,
-      8: false,
-      9: false,
-      10: false,
-      11: false,
-      12: false,
-      13: false,
-      14: false,
-      15: false,
-      16: false,
-      17: false,
-      18: false,
-      19: false,
-      20: false,
-      21: false,
-      22: false,
-    },
-    JUM: {
-      7: false,
-      8: false,
-      9: false,
-      10: false,
-      11: false,
-      12: false,
-      13: false,
-      14: false,
-      15: false,
-      16: false,
-      17: false,
-      18: false,
-      19: false,
-      20: false,
-      21: false,
-      22: false,
-    },
-    SAB: {
-      7: false,
-      8: false,
-      9: false,
-      10: false,
-      11: false,
-      12: false,
-      13: false,
-      14: false,
-      15: false,
-      16: false,
-      17: false,
-      18: false,
-      19: false,
-      20: false,
-      21: false,
-      22: false,
-    },
+  const [timeAvailable, setTimeAvailable] = useState<timeAvailableInterface>({
+    MIN: {},
+    SEN: {},
+    SEL: {},
+    RAB: {},
+    KAM: {},
+    JUM: {},
+    SAB: {},
   });
 
   const toggleTimeSlot = (day: string, hour: number) => {
@@ -337,13 +225,7 @@ export default function Inputlapangan() {
     {
       console.log("SAVING!");
       try {
-        await updateDoc(doc(db, "customer", getAuth().currentUser!!.uid), {
-          role: "Venue Owner",
-        }).then(() => {
-          console.log("Change Role Customer!");
-          // router.push({ pathname: "/index", params: user });
-        });
-        await setDoc(doc(db, "venueOwner", getAuth().currentUser!!.uid), {
+        await updateDoc(doc(db, "venueOwner", getAuth().currentUser!!.uid), {
           id: getAuth().currentUser!!.uid,
           akunPembayaran: metodePembayaran,
           nomorAkun: nomorAkun,
@@ -351,7 +233,7 @@ export default function Inputlapangan() {
           console.log("Adding Venue Owner Data!");
           // router.push({ pathname: "/index", params: user });
         });
-        await setDoc(doc(db, "lapangan", getAuth().currentUser!!.uid), {
+        await updateDoc(doc(db, "lapangan", getAuth().currentUser!!.uid), {
           id: getAuth().currentUser!!.uid,
           alamat: venueAddress,
           deskripsi: venueDescription,
@@ -379,11 +261,76 @@ export default function Inputlapangan() {
   const auth = getAuth();
   const user = auth.currentUser;
 
+  const fetchLapangan = () => {
+    const q = query(
+      collection(db, "lapangan"),
+      where("id", "==", getAuth().currentUser!!.uid)
+    );
+    const unsub = onSnapshot(q, (querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        setVenueAddress(doc.data().alamat);
+        setVenueDescription(doc.data().deskripsi);
+        for (let i = 1; i <= 4; i++) {
+          if (doc.data().gambar[i]) {
+            setImage((prev: any) => ({
+              ...prev,
+              [i]: doc.data().gambar[i],
+            }));
+          } else {
+            setImage((prev: any) => ({
+              ...prev,
+              [i]: "",
+            }));
+          }
+        }
+
+        setImageData(doc.data().gambar);
+        setVenuePrice(doc.data().harga);
+        setTipeLapangan(doc.data().kategori);
+        setVenueName(doc.data().namaLapangan);
+        setTimeAvailable(doc.data().timeAvailable);
+        setWhatsappNumber(doc.data().whatsapp);
+        console.log(doc.data());
+      });
+    });
+    return unsub;
+  };
+
+  const fetchOwnerData = () => {
+    const q = query(
+      collection(db, "venueOwner"),
+      where("id", "==", getAuth().currentUser!!.uid)
+    );
+    const unsub = onSnapshot(q, (querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        setMetodePembayaran(doc.data().akunPembayaran);
+        setNomorAkun(doc.data().nomorAkun);
+        console.log(doc.data());
+      });
+    });
+    setLoading(false);
+    return unsub;
+  };
+
   useEffect(() => {
     if (!user) {
       router.push({ pathname: "/signin" });
+    } else {
+      fetchLapangan();
+      fetchOwnerData();
     }
   }, [user]);
+
+  if (loading) {
+    return (
+      <View>
+        <Header user={params} router={router} />
+        <Text className="w-full align-middle text-center text-xl font-bold">
+          Loading...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView>
@@ -391,46 +338,49 @@ export default function Inputlapangan() {
       {/* Area Content */}
       <View className="mt-4 flex items-center">
         <View>
-          <Text className="text-4xl font-bold">Isi Data Lapangan</Text>
+          <Text className="text-4xl font-bold">Atur Data Lapangan</Text>
         </View>
         {/* <View className="mt-8">
-          <Text className="text-center text-xs">Enter to start Booking</Text>
-          <Image
-            source={require("../../assets/images/login1.png")}
-            className="mt-2"
-          />
-        </View> */}
+            <Text className="text-center text-xs">Enter to start Booking</Text>
+            <Image
+              source={require("../../assets/images/login1.png")}
+              className="mt-2"
+            />
+          </View> */}
         {!next ? (
           <View className="mt-4 w-full">
             <View className="mx-6">
               <Text className="text-base">Nama Lapangan</Text>
               <TextInput
-                placeholder="Masukkan Nama Lapangan"
+                placeholder={`${venueName}`}
                 onChangeText={(text) => setVenueName(text)}
+                value={`${venueName}`}
                 className="mt-2 text-base px-4 py-2 border-2 border-gray-400 rounded-xl"
               />
             </View>
             <View className="mx-6">
               <Text className="text-base mt-2">Alamat</Text>
               <TextInput
-                placeholder="Masukkan Alamat Lapangan"
+                placeholder={`${venueAddress}`}
                 onChangeText={(text) => setVenueAddress(text)}
+                value={`${venueAddress}`}
                 className="mt-2 text-base px-4 py-2 border-2 border-gray-400 rounded-xl"
               />
             </View>
             <View className="mx-6">
               <Text className="text-base mt-2">Deskripsi Lapangan</Text>
               <TextInput
-                placeholder="Masukkan Deskripsi"
+                placeholder={`${venueDescription}`}
                 onChangeText={(text) => setVenueDescription(text)}
                 multiline={true}
+                value={`${venueDescription}`}
                 className="mt-2 text-base px-4 py-2 border-2 border-gray-400 rounded-xl h-[100px]"
               />
             </View>
             <View className="mx-6">
               <Text className="text-base mt-2">Harga per jam</Text>
               <TextInput
-                placeholder="Contoh : 85000"
+                placeholder={`${venuePrice}`}
                 keyboardType="numeric"
                 onChangeText={(text) => setVenuePrice(text)}
                 value={venuePrice}
@@ -440,9 +390,10 @@ export default function Inputlapangan() {
             <View className="mx-6">
               <Text className="text-base mt-2">Nomor Whatsapp</Text>
               <TextInput
-                placeholder="Masukkan Nomor Whatsapp"
+                placeholder={`${whatsappNumber}`}
                 keyboardType="numeric"
                 onChangeText={(text) => setWhatsappNumber(text)}
+                value={`${whatsappNumber}`}
                 className="mt-2 text-base px-4 py-2 border-2 border-gray-400 rounded-xl"
               />
             </View>

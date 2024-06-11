@@ -44,10 +44,13 @@ export default function HomeScreen() {
   const [jenisLapangan, setJenisLapangan] = useState<any>("Futsal");
   const [isFilter, setIsFilter] = useState<boolean>(false);
   const [lapangan, setLapangan] = useState<any>({});
+  const [iklan, setIklan] = useState<any>({});
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [rating, setRating] = useState<number>();
   const [harga, setHarga] = useState<number>();
   const [loading, setLoading] = useState<boolean>(true);
+  const [search, setSearch] = useState<string>("");
+  const [isSearch, setIsSearch] = useState<boolean>(false);
   const router = useRouter();
   const user = getAuth().currentUser;
   const params = useLocalSearchParams();
@@ -58,6 +61,21 @@ export default function HomeScreen() {
       setRefreshing(false);
     }, 2000);
   }, []);
+
+  const fetchIklan = () => {
+    const q = query(collection(db, "iklanPromosi"));
+    const unsub = onSnapshot(q, (querySnapshot) => {
+      const iklanData: any = {};
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const id = doc.id;
+        iklanData[id] = data;
+        console.log(doc.data());
+      });
+      setIklan(iklanData);
+    });
+    return unsub;
+  };
 
   const fetchLapangan = () => {
     const q = query(collection(db, "lapangan"));
@@ -73,6 +91,25 @@ export default function HomeScreen() {
     });
     setLoading(false);
     return unsub;
+  };
+
+  const resultsSearch = () => {
+    return Object.values(lapangan).filter(
+      (item: any) =>
+        (!jenisLapangan || item.kategori == jenisLapangan) &&
+        (rating ? item.rating >= rating : true) &&
+        (harga
+          ? harga == 1
+            ? item.harga <= 50000
+            : harga == 2
+            ? item.harga <= 100000 && item.harga > 50000
+            : harga == 3
+            ? item.harga <= 150000 && item.harga > 100000
+            : item.harga >= 150000
+          : true) &&
+        (item.namaLapangan.toLowerCase().includes(search.toLowerCase()) ||
+          item.alamat.toLowerCase().includes(search.toLowerCase()))
+    );
   };
 
   const filterKategori = () => {
@@ -92,7 +129,64 @@ export default function HomeScreen() {
     );
   };
 
+  const formatCurrency = (amount: number) => {
+    const formattedAmount = new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(amount);
+
+    return formattedAmount;
+  };
+
+  const renderStarRate = (rating: number) => {
+    console.log(iklan);
+    console.log(rating);
+    const starRate = [];
+    if (rating == 5) {
+      for (let i = 0; i < 5; i++) {
+        starRate.push(
+          <MaterialIcons key={i} name="star-rate" size={18} color="#DFB300" />
+        );
+      }
+    } else if (rating == 0) {
+      for (let i = 0; i < 5; i++) {
+        starRate.push(
+          <MaterialIcons key={i} name="star-border" size={18} color="#DFB300" />
+        );
+      }
+    } else {
+      for (let i = 1; i <= rating; i++) {
+        starRate.push(
+          <MaterialIcons key={i} name="star-rate" size={18} color="#DFB300" />
+        );
+      }
+      if (rating - Math.floor(rating) > 0) {
+        starRate.push(
+          <MaterialIcons
+            key={Math.floor(rating) + 1}
+            name="star-half"
+            size={18}
+            color="#DFB300"
+          />
+        );
+      }
+      for (let i = 1; i <= 5 - rating; i++) {
+        starRate.push(
+          <MaterialIcons
+            key={i + Math.floor(rating) + 1}
+            name="star-border"
+            size={18}
+            color="#DFB300"
+          />
+        );
+      }
+    }
+    return starRate;
+  };
+
   useEffect(() => {
+    fetchIklan();
     fetchLapangan();
   }, [user]);
 
@@ -116,7 +210,23 @@ export default function HomeScreen() {
           dot={<View style={styles.dot} />}
           activeDot={<View style={styles.activeDot} />}
         >
-          {images.map((image, index) => (
+          {Object.values(iklan).map((item: any) => (
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/reservation",
+                  params: { id: item.idLapangan },
+                })
+              }
+            >
+              <Image
+                source={{ uri: item.gambarIklan }}
+                style={styles.image}
+                className="mx-2 h-full"
+              />
+            </TouchableOpacity>
+          ))}
+          {/* {images.map((image, index) => (
             <View style={styles.slide} key={index}>
               <Image
                 source={image.src}
@@ -124,7 +234,7 @@ export default function HomeScreen() {
                 className="h-full"
               />
             </View>
-          ))}
+          ))} */}
         </Swiper>
         <Text></Text>
       </View>
@@ -276,13 +386,17 @@ export default function HomeScreen() {
             <View className="border-2 border-slate-600 rounded-lg w-[87.5%]">
               <View className="flex-row mx-1 my-1 w-full">
                 <TouchableOpacity
-                  onPress={() => router}
+                  onPress={() => setIsSearch(search !== "")}
                   className="self-center"
                 >
                   <FontAwesome name="search" size={24} color="rgba(0,0,0,.6)" />
                 </TouchableOpacity>
                 <TextInput
                   placeholder="Search"
+                  onChangeText={(text) => {
+                    setSearch(text);
+                    setIsSearch(text !== "");
+                  }}
                   className="mx-2 text-lg w-[80%] self-center"
                 ></TextInput>
               </View>
@@ -379,57 +493,116 @@ export default function HomeScreen() {
           </View>
           <ScrollView className="mx-2 mt-2 h-fit">
             {/* Berdasarkan query */}
-            {filterKategori().map((item: any) => (
-              <View
-                key={item.id}
-                className="mt-2 px-2 flex flex-row h-[120px] bg-[#C9E2FF] rounded-xl border-2 border-slate-400"
-              >
-                {/* Image */}
-                <Image
-                  source={
-                    item.gambar[1] != ""
-                      ? { uri: item.gambar[1] }
-                      : item.gambar[2] != ""
-                      ? { uri: item.gambar[2] }
-                      : item.gambar[3] != ""
-                      ? { uri: item.gambar[3] }
-                      : { uri: item.gambar[4] }
-                  }
-                  className="my-auto rounded-lg h-[100px] w-[23%]"
-                />
-                {/* Data */}
-                <View className="flex flex-col self-center mx-auto w-[71%]">
-                  {/* Nama Lapangan */}
-                  <Text className="text-lg font-bold text-start">
-                    {item.namaLapangan}
-                  </Text>
-                  {/* Alamat */}
-                  <Text className="text-xs text-start">{item.alamat}</Text>
-                  {/* Harga */}
-                  <Text className="text-xs text-start">
-                    Rp {item.harga}/jam
-                  </Text>
-                  <View className="flex flex-row self-end mx-3">
-                    <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-                    <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-                    <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-                    <MaterialIcons name="star-rate" size={18} color="#DFB300" />
-                    <MaterialIcons name="star-rate" size={18} color="#626262" />
-                  </View>
-                  <TouchableOpacity
-                    onPress={() =>
-                      router.push({
-                        pathname: "/reservation",
-                        params: { id: item.id },
-                      })
-                    }
-                    className="self-end bg-[#FDE767] w-[44%] h-[22%] rounded-xl items-center"
+            {isSearch
+              ? resultsSearch().map((item: any) => (
+                  <View
+                    key={item.id}
+                    className="mt-2 px-2 flex flex-row h-[120px] bg-[#C9E2FF] rounded-xl border-2 border-slate-400"
                   >
-                    <Text className="font-bold text-center">Book Now !</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
+                    {/* Image */}
+                    <Image
+                      source={
+                        item.gambar[1]
+                          ? { uri: item.gambar[1] }
+                          : item.gambar[2]
+                          ? { uri: item.gambar[2] }
+                          : item.gambar[3]
+                          ? { uri: item.gambar[3] }
+                          : { uri: item.gambar[4] }
+                      }
+                      className="my-auto rounded-lg h-[100px] w-[23%]"
+                    />
+                    {/* Data */}
+                    <View className="flex flex-col self-center mx-auto w-[71%]">
+                      {/* Nama Lapangan */}
+                      <Text className="text-lg font-bold text-start">
+                        {item.namaLapangan}
+                      </Text>
+                      {/* Alamat */}
+                      <Text className="text-xs text-start">{item.alamat}</Text>
+                      {/* Harga */}
+                      <Text className="text-xs text-start">
+                        {formatCurrency(item.harga)}
+                        /jam
+                      </Text>
+                      <View className="w-[44%] flex flex-row items-center justify-center self-end">
+                        {renderStarRate(item.rating)}
+                      </View>
+                      <TouchableOpacity
+                        onPress={() =>
+                          router.push({
+                            pathname: "/reservation",
+                            params: { id: item.id },
+                          })
+                        }
+                        className="self-end bg-[#FDE767] w-[44%] h-[22%] rounded-xl items-center"
+                      >
+                        <Text className="font-bold text-center">
+                          Book Now !
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
+              : filterKategori().map((item: any) => (
+                  <View
+                    key={item.id}
+                    className="mt-2 px-2 flex flex-row h-[120px] bg-[#C9E2FF] rounded-xl border-2 border-slate-400"
+                  >
+                    {/* Image */}
+                    <Image
+                      source={
+                        item.gambar[1]
+                          ? { uri: item.gambar[1] }
+                          : item.gambar[2]
+                          ? { uri: item.gambar[2] }
+                          : item.gambar[3]
+                          ? { uri: item.gambar[3] }
+                          : { uri: item.gambar[4] }
+                      }
+                      className="my-auto rounded-lg h-[100px] w-[23%]"
+                    />
+                    {/* Data */}
+                    <View className="flex flex-col self-center mx-auto w-[71%]">
+                      {/* Nama Lapangan */}
+                      <Text className="text-lg font-bold text-start">
+                        {item.namaLapangan}
+                      </Text>
+                      {/* Alamat */}
+                      <Text className="text-xs text-start">{item.alamat}</Text>
+                      {/* Harga */}
+                      <Text className="text-xs text-start">
+                        {formatCurrency(item.harga)}
+                        /jam
+                      </Text>
+                      <View className="w-[44%] flex flex-row items-center justify-center self-end">
+                        {/* <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                    <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                    <MaterialIcons name="star-rate" size={18} color="#DFB300" />
+                    <MaterialIcons name="star-half" size={18} color="#DFB300" />
+                    <MaterialIcons
+                      name="star-border"
+                      size={18}
+                      color="#DFB300"
+                    /> */}
+                        {renderStarRate(item.rating)}
+                      </View>
+                      <TouchableOpacity
+                        onPress={() =>
+                          router.push({
+                            pathname: "/reservation",
+                            params: { id: item.id },
+                          })
+                        }
+                        className="self-end bg-[#FDE767] w-[44%] h-[22%] rounded-xl items-center"
+                      >
+                        <Text className="font-bold text-center">
+                          Book Now !
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
           </ScrollView>
         </>
       )}
@@ -472,8 +645,9 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   gradient: {
-    width: "100%",
-    height: "100%",
+    width: 18,
+    height: 18,
+    ...StyleSheet.absoluteFillObject,
   },
 });
 function fetchOwnerData() {

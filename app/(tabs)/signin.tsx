@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
+  Alert,
 } from "react-native";
 import Header from "@/components/Header";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -27,9 +28,11 @@ export default function SignIn() {
         }
       })
       .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        alert(`${errorCode}: ${errorMessage}`);
+        Alert.alert(
+          "Email Password Invalid!",
+          "Pastikan untuk mengisi Email dan Password yang benar!",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }]
+        );
       });
   };
 

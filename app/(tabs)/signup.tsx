@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
+  Alert,
 } from "react-native";
 import Header from "@/components/Header";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -55,9 +56,21 @@ export default function SignUp() {
         alert("Registrasi Berhasil!");
         router.push({ pathname: "/profile" });
       });
-    } catch (e) {
-      alert(e);
+    } catch (e: any) {
+      Alert.alert("Registrasi Error!", e, [
+        { text: "OK", onPress: () => console.log("OK Pressed") },
+      ]);
     }
+  };
+
+  const isValid = () => {
+    return (
+      firstName != "" &&
+      lastName != "" &&
+      email != "" &&
+      password != "" &&
+      phoneNumber != ""
+    );
   };
 
   return (
@@ -127,7 +140,17 @@ export default function SignUp() {
             />
           </View>
           <TouchableOpacity
-            onPress={handleSignup}
+            onPress={() => {
+              if (!isValid()) {
+                Alert.alert(
+                  "Invalid Input!",
+                  "Pastikan untuk mengisi semua input!",
+                  [{ text: "OK", onPress: () => console.log("OK Pressed") }]
+                );
+              } else {
+                handleSignup();
+              }
+            }}
             className="mt-8 mx-6 bg-[#6895D2] py-3 flex items-center rounded-xl"
           >
             <Text className="text-xl text-textButton font-bold text-white">

@@ -35,9 +35,21 @@ export default function TabLayout() {
         }}
       />
       <Stack.Screen
+        name="pasangiklan"
+        options={{
+          title: "Pasang Iklan",
+        }}
+      />
+      <Stack.Screen
         name="profile"
         options={{
           title: "Profile",
+        }}
+      />
+      <Stack.Screen
+        name="suntinglapangan"
+        options={{
+          title: "Settings Lapangan",
         }}
       />
       <Stack.Screen

@@ -152,9 +152,12 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <Text className="w-full align-middle text-center text-xl font-bold">
-        Loading...
-      </Text>
+      <View>
+        <Header router={router} params={user} />
+        <Text className="w-full align-middle text-center text-xl font-bold">
+          Loading...
+        </Text>
+      </View>
     );
   }
 
@@ -257,8 +260,33 @@ export default function Profile() {
           <View
             className={profile.role === "Venue Owner" ? "mt-[4%]" : "mt-[43%]"}
           >
+            {profile.role === "Venue Owner" ? (
+              <View className="mx-6 mb-2 flex flex-row justify-between">
+                <TouchableOpacity
+                  onPress={() => router.replace("/suntinglapangan")}
+                  className="mt-2 bg-[#5F88C1] w-[49%] py-2 flex items-center rounded-3xl self-center border-[2px] border-[#5F88C1]"
+                >
+                  <Text className="text-lg text-textButton font-bold text-white">
+                    Sunting Lapangan
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => router.replace("/pasangiklan")}
+                  className="mt-2 bg-[#5F88C1] w-[49%] py-2 flex items-center rounded-3xl self-center border-[2px] border-[#5F88C1]"
+                >
+                  <Text className="text-lg text-textButton font-bold text-white">
+                    Pasang Iklan
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              ""
+            )}
             <TouchableOpacity
-              onPress={() => signOut(getAuth())}
+              onPress={() => {
+                signOut(getAuth());
+                router.push({ pathname: "/signin" });
+              }}
               className="mx-6 bg-[#FF0000] w-[50%] py-2 flex items-center rounded-3xl self-center border-[2px] border-[#5F88C1]"
             >
               <Text className="text-xl text-textButton font-bold text-white">
@@ -266,14 +294,7 @@ export default function Profile() {
               </Text>
             </TouchableOpacity>
             {profile.role === "Venue Owner" ? (
-              <TouchableOpacity
-                onPress={() => router.replace("/inputlapangan")}
-                className="mt-2 mx-6 bg-[#5F88C1] w-[50%] py-2 flex items-center rounded-3xl self-center border-[2px] border-[#5F88C1]"
-              >
-                <Text className="text-xl text-textButton font-bold text-white">
-                  Boost Your Venue
-                </Text>
-              </TouchableOpacity>
+              ""
             ) : (
               <View className="mt-1 flex flex-row justify-center">
                 <Text>You have a venue? </Text>
