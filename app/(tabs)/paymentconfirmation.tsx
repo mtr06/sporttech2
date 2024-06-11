@@ -12,18 +12,18 @@ const PaymentConfirmation = () => {
   const jumlahReferral = params.jumlahReferral;
   const harga = params.harga;
   const totalHarga = params.totalHarga;
-  const selectedTimes = params.selectedTimes
-    ? params.selectedTimes.split(",")
+  const selectedTimes: any = params.selectedTimes
+    ? (params.selectedTimes as string).split(",")
     : [];
   const userId = getAuth().currentUser!!.uid;
   console.log(id);
   console.log(selectedTimes);
 
-  const convertHourToNumber = (hourString) => {
+  const convertHourToNumber = (hourString: any) => {
     return parseInt(hourString.split(":")[0]);
   };
 
-  const updateFirestoreData = async (selectedTimes) => {
+  const updateFirestoreData = async (selectedTimes: any) => {
     try {
       const venueRef = doc(db, "lapangan", id);
 
@@ -64,7 +64,7 @@ const PaymentConfirmation = () => {
       console.error("Error updating Firestore data:", error);
     }
   };
-  const addNewOrder = async (selectedTimes, id, totalHarga) => {
+  const addNewOrder = async (selectedTimes: any, id: any, totalHarga: any) => {
     try {
       const orderRef = collection(db, "pesanan", userId, "detailPesanan");
 

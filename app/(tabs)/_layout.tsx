@@ -41,6 +41,18 @@ export default function TabLayout() {
         }}
       />
       <Stack.Screen
+        name="payment"
+        options={{
+          title: "Payment",
+        }}
+      />
+      <Stack.Screen
+        name="paymentconfirmation"
+        options={{
+          title: "Payment Confirmation",
+        }}
+      />
+      <Stack.Screen
         name="profile"
         options={{
           title: "Profile",
