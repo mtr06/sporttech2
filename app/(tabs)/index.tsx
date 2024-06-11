@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   FlatList,
+  RefreshControl,
 } from "react-native";
 import Header from "@/components/Header";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -51,6 +52,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
   const [isSearch, setIsSearch] = useState<boolean>(false);
+  const [isScroll, setIsScroll] = useState<boolean>(false);
   const router = useRouter();
   const user = getAuth().currentUser;
   const params = useLocalSearchParams();
@@ -59,7 +61,8 @@ export default function HomeScreen() {
     setRefreshing(true);
     setTimeout(() => {
       setRefreshing(false);
-    }, 2000);
+      setIsScroll(false);
+    }, 1000);
   }, []);
 
   const fetchIklan = () => {
@@ -202,45 +205,44 @@ export default function HomeScreen() {
     <View className="flex flex-1 mx-2">
       <Header user={params} router={router} />
       {/* Iklan */}
-      <View className="flex mt-2 h-[30%]">
-        <Swiper
-          style={styles.wrapper}
-          showsButtons
-          loop
-          dot={<View style={styles.dot} />}
-          activeDot={<View style={styles.activeDot} />}
-        >
-          {Object.values(iklan).map((item: any) => (
-            <TouchableOpacity
-              onPress={() =>
-                router.push({
-                  pathname: "/reservation",
-                  params: { id: item.idLapangan },
-                })
-              }
-            >
-              <Image
-                source={{ uri: item.gambarIklan }}
-                style={styles.image}
-                className="mx-2 h-full"
-              />
-            </TouchableOpacity>
-          ))}
-          {/* {images.map((image, index) => (
-            <View style={styles.slide} key={index}>
-              <Image
-                source={image.src}
-                style={styles.image}
-                className="h-full"
-              />
-            </View>
-          ))} */}
-        </Swiper>
-        <Text></Text>
-      </View>
+      {isScroll ? (
+        ""
+      ) : (
+        <View className="flex mt-2 h-[30%]">
+          <Swiper
+            style={styles.wrapper}
+            showsButtons
+            loop
+            dot={<View style={styles.dot} />}
+            activeDot={<View style={styles.activeDot} />}
+          >
+            {Object.values(iklan).map((item: any) => (
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/reservation",
+                    params: { id: item.idLapangan },
+                  })
+                }
+              >
+                <Image
+                  source={{ uri: item.gambarIklan }}
+                  style={styles.image}
+                  className="mx-2 h-full"
+                />
+              </TouchableOpacity>
+            ))}
+          </Swiper>
+          <Text></Text>
+        </View>
+      )}
       {/* Search & Filter */}
       {isFilter ? (
-        <View className="bg-[#E6EDF5] flex flex-col rounded-xl border-[1px]">
+        <View
+          className={`${
+            isScroll ? "mt-4" : ""
+          } bg-[#E6EDF5] flex flex-col rounded-xl border-[1px]`}
+        >
           <View className="mx-2 mt-1 flex flex-row items-center justify-end">
             <Text className="text-2xl font-bold mx-auto">Filter</Text>
             <TouchableOpacity
@@ -382,7 +384,11 @@ export default function HomeScreen() {
         </View>
       ) : (
         <>
-          <View className="flex-row justify-between mx-1">
+          <View
+            className={`${
+              isScroll ? "mt-4" : ""
+            } flex-row justify-between mx-1`}
+          >
             <View className="border-2 border-slate-600 rounded-lg w-[87.5%]">
               <View className="flex-row mx-1 my-1 w-full">
                 <TouchableOpacity
@@ -491,7 +497,13 @@ export default function HomeScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-          <ScrollView className="mx-2 mt-2 h-fit">
+          <ScrollView
+            className="mx-2 mt-2 h-fit"
+            onScroll={() => setIsScroll(true)}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
             {/* Berdasarkan query */}
             {isSearch
               ? resultsSearch().map((item: any) => (
