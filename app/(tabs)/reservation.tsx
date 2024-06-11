@@ -7,13 +7,16 @@ import {
   StyleSheet,
   ScrollView,
   Image,
+  Share,
+  Alert,
+  Linking,
 } from "react-native";
 import { db } from "@/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Header from "@/components/Header";
 import Swiper from "react-native-swiper";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Fontisto, MaterialIcons, Octicons } from "@expo/vector-icons";
 import { AbhayaLibre_400Regular } from "@expo-google-fonts/abhaya-libre";
 
 const daysOfWeek = ["MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB"];
@@ -64,6 +67,7 @@ export default function App() {
   const [gambar, setGambar] = useState<any>({});
   const [currentDay, setCurrentDay] = useState<string>();
   const [indexDay, setIndexDay] = useState<number>();
+  const [whatsappNumber, setWhatsappNumber] = useState<number>();
   const [valueRating, setValueRating] = useState<number>();
   const params = useLocalSearchParams();
   const router = useRouter();
@@ -138,6 +142,7 @@ export default function App() {
           setHarga(harga);
           setNama(nama);
           setValueRating(docSnap.data().rating);
+          setWhatsappNumber(docSnap.data().whatsapp);
         } else {
           console.log("No such document!");
         }
@@ -242,6 +247,27 @@ export default function App() {
     </View>
   );
 
+  const onShare = async () => {
+    try {
+      const result = await Share.share({
+        message:
+          "SportTech | An application that can be used to make online reservations for futsal, badminton, basketball, and tennis courts so that customers do not need to come directly to their place to book a court. \n https://expo.dev/accounts/mthoriqr/projects/sporttech",
+        url: "https://expo.dev/accounts/mthoriqr/projects/sporttech",
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error: any) {
+      Alert.alert(error.message);
+    }
+  };
+
   return (
     <ScrollView>
       <View className="mt-2 mx-4">
@@ -270,8 +296,32 @@ export default function App() {
       <View className="w-[44%] flex flex-row items-center justify-center self-center">
         {renderStarRate(valueRating || 0)}
       </View>
-      <Text className="text-xl font-semibold text-center">{nama}</Text>
-      <Text className="text-center">{alamat}</Text>
+      <View className="flex w-[100%] flex-row">
+        <View className="mx-auto w-[60%]">
+          <Text className="text-xl font-semibold text-center text-wrap">
+            {nama}
+          </Text>
+          <Text className="text-center text-wrap">{alamat}</Text>
+        </View>
+        <View
+          className="flex flex-row mx-6 self-center gap-x-3"
+          style={{ position: "absolute", right: 0 }}
+        >
+          <TouchableOpacity className="self-center" onPress={onShare}>
+            <Octicons name="share-android" size={26} color="#6895D2" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="self-center"
+            onPress={() => {
+              Linking.openURL(
+                `https://wa.me/${whatsappNumber?.toString().substring(1)}`
+              ).catch((err) => console.error("Error opening URL:", err));
+            }}
+          >
+            <Fontisto name="whatsapp" size={26} color="#6895D2" />
+          </TouchableOpacity>
+        </View>
+      </View>
       <View
         className="bg-[#E6EDF5] mx-4 py-3 mt-2 drop-shadow-md pb-6"
         style={styles.rectangleView}

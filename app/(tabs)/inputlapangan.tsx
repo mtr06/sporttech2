@@ -196,6 +196,32 @@ export default function Inputlapangan() {
     }));
   };
 
+  const toggleDayTimeSlot = (day: string) => {
+    Object.keys(timeAvailable[day]).map((hour) => {
+      setTimeAvailable((prev: any) => ({
+        ...prev,
+        [day]: {
+          ...prev[day],
+          [hour]: !prev[day][hour],
+        },
+      }));
+    });
+  };
+
+  const toggleAllDayTimeSlot = () => {
+    ["MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB"].map((day) => {
+      Object.keys(timeAvailable[day]).map((hour) => {
+        setTimeAvailable((prev: any) => ({
+          ...prev,
+          [day]: {
+            ...prev[day],
+            [hour]: !prev[day][hour],
+          },
+        }));
+      });
+    });
+  };
+
   const TimeSlot = ({ day }: { day: string }) => (
     <View className="flex flex-row flex-wrap justify-center gap-2">
       {Object.keys(timeAvailable[day]).map((hour) => (
@@ -518,6 +544,28 @@ export default function Inputlapangan() {
                   <TimeSlot day={day} />
                 </View>
               </View>
+            </View>
+            <View className="mt-3 mx-6 flex flex-row justify-between">
+              <TouchableOpacity
+                onPress={() => {
+                  toggleDayTimeSlot(day);
+                }}
+                className="w-[48%] bg-[#6895D2] flex items-center rounded-xl"
+              >
+                <Text className="py-2 text-md text-textButton font-bold text-white text-center">
+                  Toggle Time Harian
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  toggleAllDayTimeSlot();
+                }}
+                className="w-[48%] bg-[#6895D2] flex items-center rounded-xl"
+              >
+                <Text className="py-2 text-md text-textButton font-bold text-white text-center">
+                  Toggle Time Mingguan
+                </Text>
+              </TouchableOpacity>
             </View>
             <TouchableOpacity
               onPress={() => {

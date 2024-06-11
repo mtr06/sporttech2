@@ -218,6 +218,7 @@ export default function HomeScreen() {
           >
             {Object.values(iklan).map((item: any) => (
               <TouchableOpacity
+                key={item.id}
                 onPress={() =>
                   router.push({
                     pathname: "/reservation",
@@ -538,7 +539,9 @@ export default function HomeScreen() {
                         /jam
                       </Text>
                       <View className="w-[44%] flex flex-row items-center justify-center self-end">
-                        {renderStarRate(item.rating)}
+                        {renderStarRate(item.rating).map((star, index) => (
+                          <View key={index}>{star}</View>
+                        ))}
                       </View>
                       <TouchableOpacity
                         onPress={() =>

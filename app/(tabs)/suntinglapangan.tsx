@@ -84,6 +84,58 @@ export default function SuntingLapangan() {
     }));
   };
 
+  const toggleDayTimeSlot = (day: string) => {
+    Object.keys(timeAvailable[day]).map((hour) => {
+      setTimeAvailable((prev: any) => ({
+        ...prev,
+        [day]: {
+          ...prev[day],
+          [hour]: true,
+        },
+      }));
+    });
+  };
+
+  const toggleDayTimeSlotClose = (day: string) => {
+    Object.keys(timeAvailable[day]).map((hour) => {
+      setTimeAvailable((prev: any) => ({
+        ...prev,
+        [day]: {
+          ...prev[day],
+          [hour]: false,
+        },
+      }));
+    });
+  };
+
+  const toggleAllDayTimeSlot = () => {
+    ["MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB"].map((day) => {
+      Object.keys(timeAvailable[day]).map((hour) => {
+        setTimeAvailable((prev: any) => ({
+          ...prev,
+          [day]: {
+            ...prev[day],
+            [hour]: true,
+          },
+        }));
+      });
+    });
+  };
+
+  const toggleAllDayTimeSlotClose = () => {
+    ["MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB"].map((day) => {
+      Object.keys(timeAvailable[day]).map((hour) => {
+        setTimeAvailable((prev: any) => ({
+          ...prev,
+          [day]: {
+            ...prev[day],
+            [hour]: false,
+          },
+        }));
+      });
+    });
+  };
+
   const TimeSlot = ({ day }: { day: string }) => (
     <View className="flex flex-row flex-wrap justify-center gap-2">
       {Object.keys(timeAvailable[day]).map((hour) => (
@@ -469,6 +521,48 @@ export default function SuntingLapangan() {
                   <TimeSlot day={day} />
                 </View>
               </View>
+            </View>
+            <View className="mt-3 mx-6 flex flex-row justify-between">
+              <TouchableOpacity
+                onPress={() => {
+                  toggleDayTimeSlot(day);
+                }}
+                className="w-[24%] bg-[#6895D2] flex items-center rounded-xl"
+              >
+                <Text className="py-2 text-md text-textButton font-bold text-white text-center">
+                  Aktivasi Harian
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  toggleDayTimeSlotClose(day);
+                }}
+                className="w-[24%] bg-[#6895D2] flex items-center rounded-xl"
+              >
+                <Text className="py-2 text-md text-textButton font-bold text-white text-center">
+                  Close{"\n"}Harian
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  toggleAllDayTimeSlot();
+                }}
+                className="w-[24%] bg-[#6895D2] flex items-center rounded-xl"
+              >
+                <Text className="py-2 text-md text-textButton font-bold text-white text-center">
+                  Aktivasi Mingguan
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  toggleAllDayTimeSlotClose();
+                }}
+                className="w-[24%] bg-[#6895D2] flex items-center rounded-xl"
+              >
+                <Text className="py-2 text-md text-textButton font-bold text-white text-center">
+                  Close Mingguan
+                </Text>
+              </TouchableOpacity>
             </View>
             <TouchableOpacity
               onPress={() => {
